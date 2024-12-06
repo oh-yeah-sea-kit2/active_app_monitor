@@ -10,7 +10,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Active App & User Activity Monitor',
+      title: 'Active App & Chrome URL Monitor',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -27,6 +27,7 @@ class ActiveAppScreen extends StatefulWidget {
 class _ActiveAppScreenState extends State<ActiveAppScreen> {
   static const platform = MethodChannel('com.example.active_app_display');
   String _activeApp = 'Unknown';
+  String _chromeURL = 'Not active';
   String _userActivityStatus = 'Unknown';
   Timer? _timer;
 
@@ -45,6 +46,7 @@ class _ActiveAppScreenState extends State<ActiveAppScreen> {
   void _startMonitoring() {
     _timer = Timer.periodic(Duration(seconds: 1), (timer) async {
       await _getActiveApp();
+      await _getChromeURL();
       await _getUserActivity();
     });
   }
@@ -58,6 +60,19 @@ class _ActiveAppScreenState extends State<ActiveAppScreen> {
     } on PlatformException catch (e) {
       setState(() {
         _activeApp = "Failed to get active app: ${e.message}";
+      });
+    }
+  }
+
+  Future<void> _getChromeURL() async {
+    try {
+      final result = await platform.invokeMethod('getChromeURL');
+      setState(() {
+        _chromeURL = result;
+      });
+    } on PlatformException catch (e) {
+      setState(() {
+        _chromeURL = "Failed to get Chrome URL: ${e.message}";
       });
     }
   }
@@ -80,7 +95,7 @@ class _ActiveAppScreenState extends State<ActiveAppScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Active App & User Activity Monitor'),
+        title: Text('Active App & Chrome URL Monitor'),
       ),
       body: Center(
         child: Column(
@@ -96,6 +111,21 @@ class _ActiveAppScreenState extends State<ActiveAppScreen> {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 20),
+            if (_chromeURL != 'Not active')
+              Column(
+                children: [
+                  Text(
+                    'Chrome URL:',
+                    style: TextStyle(fontSize: 20),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    _chromeURL,
+                    style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+                  ),
+                ],
+              ),
+            SizedBox(height: 20),
             Text(
               'User Activity:',
               style: TextStyle(fontSize: 20),
@@ -104,11 +134,6 @@ class _ActiveAppScreenState extends State<ActiveAppScreen> {
             Text(
               _userActivityStatus,
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            Text(
-              'Updating every second...',
-              style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
             ),
           ],
         ),

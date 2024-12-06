@@ -11,7 +11,6 @@ class AppDelegate: FlutterAppDelegate {
         let channel = FlutterMethodChannel(name: "com.example.active_app_display",
                                            binaryMessenger: controller.engine.binaryMessenger)
 
-        // Method channel handler
         channel.setMethodCallHandler { (call: FlutterMethodCall, result: @escaping FlutterResult) in
             switch call.method {
             case "getActiveApp":
@@ -20,6 +19,8 @@ class AppDelegate: FlutterAppDelegate {
                 } else {
                     result("No active application")
                 }
+            case "getChromeURL":
+                result(self.getActiveChromeTabURL())
             case "getLastActivity":
                 let timeInterval = -self.lastUserActivity.timeIntervalSinceNow
                 result(timeInterval)
@@ -35,7 +36,6 @@ class AppDelegate: FlutterAppDelegate {
     }
 
     override func applicationWillTerminate(_ notification: Notification) {
-        // Stop monitoring user activity
         if let monitor = eventMonitor {
             NSEvent.removeMonitor(monitor)
         }
@@ -46,4 +46,33 @@ class AppDelegate: FlutterAppDelegate {
             self.lastUserActivity = Date()
         }
     }
+
+    private func getActiveChromeTabURL() -> String {
+        guard let activeApp = NSWorkspace.shared.frontmostApplication,
+            activeApp.localizedName == "Google Chrome" else {
+            return "Not active"
+        }
+
+        let script = """
+        tell application "Google Chrome"
+            if not (exists front window) then
+                return "No active window"
+            else
+                return URL of active tab of front window
+            end if
+        end tell
+        """
+        var error: NSDictionary?
+        if let scriptObject = NSAppleScript(source: script) {
+            if let output = scriptObject.executeAndReturnError(&error).stringValue {
+                return output
+            } else if let error = error {
+                // AppleScriptエラーを詳しく返す
+                return "AppleScript Error: \(error)"
+            }
+        }
+        return "Failed to execute script"
+    }
+
+
 }
