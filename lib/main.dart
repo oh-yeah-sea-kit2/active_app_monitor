@@ -10,7 +10,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Active App Monitor',
+      title: 'Active App & User Activity Monitor',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -27,6 +27,7 @@ class ActiveAppScreen extends StatefulWidget {
 class _ActiveAppScreenState extends State<ActiveAppScreen> {
   static const platform = MethodChannel('com.example.active_app_display');
   String _activeApp = 'Unknown';
+  String _userActivityStatus = 'Unknown';
   Timer? _timer;
 
   @override
@@ -42,9 +43,9 @@ class _ActiveAppScreenState extends State<ActiveAppScreen> {
   }
 
   void _startMonitoring() {
-    // 1秒ごとに現在アクティブなアプリを取得
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      _getActiveApp();
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) async {
+      await _getActiveApp();
+      await _getUserActivity();
     });
   }
 
@@ -61,11 +62,25 @@ class _ActiveAppScreenState extends State<ActiveAppScreen> {
     }
   }
 
+  Future<void> _getUserActivity() async {
+    try {
+      final lastActivity = await platform.invokeMethod('getLastActivity');
+      final isUserActive = lastActivity < 5; // 5秒以内の操作をアクティブとみなす
+      setState(() {
+        _userActivityStatus = isUserActive ? 'User is active' : 'User is idle';
+      });
+    } on PlatformException catch (e) {
+      setState(() {
+        _userActivityStatus = "Failed to get user activity: ${e.message}";
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Active App Monitor'),
+        title: Text('Active App & User Activity Monitor'),
       ),
       body: Center(
         child: Column(
@@ -78,6 +93,16 @@ class _ActiveAppScreenState extends State<ActiveAppScreen> {
             SizedBox(height: 10),
             Text(
               _activeApp,
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 20),
+            Text(
+              'User Activity:',
+              style: TextStyle(fontSize: 20),
+            ),
+            SizedBox(height: 10),
+            Text(
+              _userActivityStatus,
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 20),
