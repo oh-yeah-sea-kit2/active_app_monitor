@@ -5,6 +5,7 @@ import FlutterMacOS
 class AppDelegate: FlutterAppDelegate {
     private var lastUserActivity: Date = Date()
     private var eventMonitor: Any?
+    var statusItem: NSStatusItem?
 
     override func applicationDidFinishLaunching(_ notification: Notification) {
         let controller = self.mainFlutterWindow?.contentViewController as! FlutterViewController
@@ -31,7 +32,10 @@ class AppDelegate: FlutterAppDelegate {
 
         // Start monitoring keyboard and mouse activity
         startMonitoringUserActivity()
+        // メニューバーアイコンの作成
+        setupMenuBar()
 
+        // FlutterAppDelegateの初期化を最初に呼び出す
         super.applicationDidFinishLaunching(notification)
     }
 
@@ -74,5 +78,46 @@ class AppDelegate: FlutterAppDelegate {
         return "Failed to execute script"
     }
 
+    func setupMenuBar() {
+        // メニューバーアイコンの作成
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        if statusItem == nil {
+            print("Failed to create status item")  // デバッグ用
+            return
+        }
+        if let button = statusItem?.button {
+            if #available(macOS 11.0, *) {
+                button.image = NSImage(systemSymbolName: "circle.fill", accessibilityDescription: "App Icon")
+            } else {
+                button.image = NSImage(named: NSImage.Name("NSApplicationIcon"))
+            }
+            button.action = #selector(menuBarIconClicked)
+        } else {
+            print("Failed to create button for status item")  // デバッグ用
+        }
+
+        // メニューを設定
+        let menu = NSMenu()
+        menu.addItem(NSMenuItem(title: "Show App", action: #selector(showApp), keyEquivalent: "s"))
+        menu.addItem(NSMenuItem.separator())
+        menu.addItem(NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q"))
+        statusItem?.menu = menu
+    }
+
+
+    @objc func menuBarIconClicked() {
+        // メニューバーアイコンがクリックされたときの処理（現在は何もしない）
+    }
+
+    @objc func showApp() {
+        // アプリのウィンドウを表示
+        NSApp.activate(ignoringOtherApps: true)
+        self.mainFlutterWindow?.makeKeyAndOrderFront(nil)
+    }
+
+    @objc func quitApp() {
+        // アプリを終了
+        NSApp.terminate(nil)
+    }
 
 }
