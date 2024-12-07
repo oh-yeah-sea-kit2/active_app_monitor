@@ -80,7 +80,7 @@ class _ActiveAppScreenState extends State<ActiveAppScreen> {
   Future<void> _getUserActivity() async {
     try {
       final lastActivity = await platform.invokeMethod('getLastActivity');
-      final isUserActive = lastActivity < 5; // 5秒以内の操作をアクティブとみなす
+      final isUserActive = lastActivity < 60; // 60秒以内の操作をアクティブとみなす
       setState(() {
         _userActivityStatus = isUserActive ? 'User is active' : 'User is idle';
       });
