@@ -1,19 +1,33 @@
 # active_app_monitor
 
-A new Flutter project.
+MacOSで1日の作業状況を記録したい
 
-## Getting Started
+## アプリの仕様を考える
 
-This project is a starting point for a Flutter application.
+1. アプリ開発などを行っているときに開いているアプリを決める（追加出来るようにもしたほうが良さそう）
+   - VSCode
+   - iTerm2
+   - Chrome
+     - 開いているURLを限定する
+2. 上記アプリ一覧のときの稼働を記録する。
+3. メニューバーに常時起動
+4. アプリを閉じてもバックグラウンドで稼働すること
+5. どこかしらに今までの内容を記録。JSONとかSQLiteで保存。
+6. アクティブなアプリを記録。キーボード、マウスの動きも検知して実際に作業中であることを確認。
+7. その日の終わりや週の終わり、月の終わりに確認してどれくらい作業をしたか確認したい。
+8. 基本的にすべてのアプリ、Chromeの開いているURLでの作業時間を記録する。
 
-A few resources to get you started if this is your first Flutter project:
+### Swiftでやること
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- アクティブなアプリを記録。キーボード、マウスの動きも検知して実際に作業中であることを確認。
+- メニューバーに常時起動
+- アプリを閉じてもバックグラウンドで稼働すること
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Flutter でやること
+
+- 監視対象のアプリ名の管理。追加削除
+- ChromeのみURLまで管理。これも追加削除まで
+- アプリの稼働を記録
 
 ## memo
 
