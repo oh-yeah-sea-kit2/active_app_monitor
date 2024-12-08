@@ -120,4 +120,9 @@ class AppDelegate: FlutterAppDelegate {
         NSApp.terminate(nil)
     }
 
+    // Secure Restorable Stateをサポートすることを明示
+    override func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
+        return true
+    }
+
 }
