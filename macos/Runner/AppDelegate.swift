@@ -68,10 +68,10 @@ class AppDelegate: FlutterAppDelegate {
         """
         var error: NSDictionary?
         if let scriptObject = NSAppleScript(source: script) {
-            if let output = scriptObject.executeAndReturnError(&error).stringValue {
-                return output
+            if let output = scriptObject.executeAndReturnError(&error).stringValue,
+               let url = URL(string: output) {
+                return url.host ?? output
             } else if let error = error {
-                // AppleScriptエラーを詳しく返す
                 return "AppleScript Error: \(error)"
             }
         }
