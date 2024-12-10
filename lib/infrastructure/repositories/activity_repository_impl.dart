@@ -3,6 +3,8 @@ import '../datasources/platform_channel_datasource.dart';
 
 class ActivityRepositoryImpl implements ActivityRepository {
   final PlatformChannelDataSource dataSource;
+  // アクティビティのタイムアウト値（秒）
+  static const double activityTimeoutSeconds = 10.0;
 
   ActivityRepositoryImpl(this.dataSource);
 
@@ -19,6 +21,6 @@ class ActivityRepositoryImpl implements ActivityRepository {
   @override
   Future<bool> getUserActivity() async {
     final lastActivity = await dataSource.getLastActivity();
-    return lastActivity < 10.0;
+    return lastActivity < activityTimeoutSeconds;
   }
 }

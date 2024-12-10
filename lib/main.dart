@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'infrastructure/datasources/platform_channel_datasource.dart';
+import 'infrastructure/datasources/json_file_datasource.dart';
 import 'infrastructure/repositories/activity_repository_impl.dart';
 import 'application/services/activity_service.dart';
+import 'application/services/activity_recording_service.dart';
 import 'presentation/screens/active_app_screen.dart';
 
 void main() {
-  final dataSource = PlatformChannelDataSource();
-  final repository = ActivityRepositoryImpl(dataSource);
-  final service = ActivityService(repository);
+  final platformDataSource = PlatformChannelDataSource();
+  final jsonDataSource = JsonFileDataSource();
+  final repository = ActivityRepositoryImpl(platformDataSource);
+  final recordingService = ActivityRecordingService(jsonDataSource);
+  final service = ActivityService(repository, recordingService);
 
   runApp(MyApp(activityService: service));
 }
