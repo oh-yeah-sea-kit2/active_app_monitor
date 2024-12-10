@@ -25,7 +25,7 @@ class PlatformChannelDataSource {
     try {
       final result = await platform.invokeMethod('getLastActivity');
       return (result as double?) ?? 0.0;
-    } on PlatformException catch (e) {
+    } on PlatformException {
       return 0.0;
     }
   }
