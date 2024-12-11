@@ -30,23 +30,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
-  void _showAddAppDialog() {
+  void _showAppSettingsDialog(AppMonitorSetting? app) {
+    final isNewApp = app == null;
+    final appNameController = TextEditingController(text: app?.name ?? '');
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('アプリを追加'),
+        title: Text(isNewApp ? 'アプリを追加' : 'アプリ設定'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              controller: _appNameController,
+              controller: appNameController,
               decoration: InputDecoration(labelText: 'アプリ名'),
+              enabled: isNewApp, // 既存のアプリ名は編集不可
             ),
-            SizedBox(height: 8),
-            Text(
-              '※ アプリ名は正確に入力してください\n例: Visual Studio Code, Google Chrome',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
+            if (isNewApp) ...[
+              SizedBox(height: 8),
+              Text(
+                '※ アプリ名は正確に入力してください\n例: Visual Studio Code, Google Chrome',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
           ],
         ),
         actions: [
@@ -56,15 +62,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           TextButton(
             onPressed: () async {
-              if (_appNameController.text.isNotEmpty) {
-                final newSettings = _settings!.addApp(_appNameController.text);
-                await widget.settingsRepository.saveSettings(newSettings);
+              if (appNameController.text.isNotEmpty) {
+                if (isNewApp) {
+                  final newSettings = _settings!.addApp(appNameController.text);
+                  await widget.settingsRepository.saveSettings(newSettings);
+                }
                 await _loadSettings();
-                _appNameController.clear();
                 Navigator.pop(context);
               }
             },
-            child: Text('追加'),
+            child: Text(isNewApp ? '追加' : '保存'),
           ),
         ],
       ),
@@ -119,29 +126,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
     }
 
-    final chromeApp = _settings!.targetApps
-        .where((app) => app.name == 'Google Chrome')
-        .firstOrNull;
-
     return Scaffold(
       appBar: AppBar(
         title: Text('監視設定'),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showAddAppDialog,
+        onPressed: () => _showAppSettingsDialog(null),
         child: Icon(Icons.add),
         tooltip: '監視アプリを追加',
       ),
       body: ListView(
         children: [
           Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16.0),
             child: Text(
-              '監視対象アプリ',
-              style: Theme.of(context).textTheme.titleMedium,
+              '監視アプリ',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
-          ..._settings!.targetApps.map((app) => ListTile(
+          ..._settings!.targetApps.map((app) => ExpansionTile(
+                initiallyExpanded: app.name == 'Google Chrome',
                 title: Text(app.name),
                 trailing: IconButton(
                   icon: Icon(Icons.delete),
@@ -151,37 +158,56 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     await _loadSettings();
                   },
                 ),
+                children: [
+                  if (app.name == 'Google Chrome') ...[
+                    Container(
+                      color: Colors.grey.withOpacity(0.1),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Text(
+                              '監視ドメイン設定',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          ListTile(
+                            leading: Icon(Icons.web),
+                            title: Text('監視ドメインを追加'),
+                            trailing: IconButton(
+                              icon: Icon(Icons.add),
+                              onPressed: () => _showAddDomainDialog(),
+                            ),
+                          ),
+                          ...app.targetDomains.map((domain) => ListTile(
+                                leading: SizedBox(width: 32),
+                                title: Text(domain),
+                                trailing: IconButton(
+                                  icon: Icon(Icons.delete),
+                                  onPressed: () async {
+                                    final newDomains = app.targetDomains
+                                        .where((d) => d != domain)
+                                        .toList();
+                                    final updatedApp =
+                                        app.copyWithDomains(newDomains);
+                                    final newSettings =
+                                        _settings!.updateApp(updatedApp);
+                                    await widget.settingsRepository
+                                        .saveSettings(newSettings);
+                                    await _loadSettings();
+                                  },
+                                ),
+                              )),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
               )),
-          if (chromeApp != null) ...[
-            Divider(),
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                'Chrome監視ドメイン',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-            ...chromeApp.targetDomains.map((domain) => ListTile(
-                  title: Text(domain),
-                  trailing: IconButton(
-                    icon: Icon(Icons.delete),
-                    onPressed: () async {
-                      final newDomains = chromeApp.targetDomains
-                          .where((d) => d != domain)
-                          .toList();
-                      final updatedApp = chromeApp.copyWithDomains(newDomains);
-                      final newSettings = _settings!.updateApp(updatedApp);
-                      await widget.settingsRepository.saveSettings(newSettings);
-                      await _loadSettings();
-                    },
-                  ),
-                )),
-            ListTile(
-              leading: Icon(Icons.add),
-              title: Text('ドメインを追加'),
-              onTap: _showAddDomainDialog,
-            ),
-          ],
         ],
       ),
     );
