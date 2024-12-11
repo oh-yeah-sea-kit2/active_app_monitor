@@ -16,6 +16,36 @@ class ActivityService {
     final chromeUrl = await repository.getChromeURL();
     final isUserActive = await repository.getUserActivity();
 
+    // 本日の作業時間を取得
+    final now = DateTime.now();
+    final monthlyActivity =
+        await recordingService.getMonthlyActivity(now.year, now.month);
+
+    Duration todayWorkDuration = Duration.zero;
+    Map<String, Duration> appDurations = {};
+
+    if (monthlyActivity != null) {
+      final todayRecords = monthlyActivity.records
+          .where((record) =>
+              record.date.year == now.year &&
+              record.date.month == now.month &&
+              record.date.day == now.day)
+          .expand((daily) => daily.activities)
+          .toList();
+
+      for (var record in todayRecords) {
+        final duration = record.endTime.difference(record.startTime);
+        todayWorkDuration += duration;
+
+        // アプリごとの作業時間を集計
+        appDurations.update(
+          record.appName,
+          (value) => value + duration,
+          ifAbsent: () => duration,
+        );
+      }
+    }
+
     recordingService.startNewActivity(
         appName, chromeUrl != 'Not active' ? chromeUrl : null);
 
@@ -24,6 +54,8 @@ class ActivityService {
       chromeUrl: chromeUrl,
       isUserActive: isUserActive,
       timestamp: DateTime.now(),
+      todayWorkDuration: todayWorkDuration,
+      appDurations: appDurations,
     );
   }
 
