@@ -19,6 +19,22 @@ class JsonFileDataSource {
   }
 
   Future<void> saveActivity(ActivityRecord record, DateTime date) async {
+    Map<String, dynamic> details = record.details;
+    if (record.appName == 'Google Chrome' && details.containsKey('open_url')) {
+      final url = details['open_url'] as String;
+      final uri = Uri.tryParse(url);
+      if (uri != null) {
+        details = {'open_url': uri.host};
+      }
+    }
+
+    final modifiedRecord = ActivityRecord(
+      appName: record.appName,
+      startTime: record.startTime,
+      endTime: record.endTime,
+      details: details,
+    );
+
     final file = await _getMonthlyFile(date.year, date.month);
     MonthlyActivity monthlyActivity;
 

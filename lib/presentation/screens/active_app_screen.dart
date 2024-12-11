@@ -3,6 +3,7 @@ import 'dart:async';
 import '../../application/services/activity_service.dart';
 import '../../domain/entities/app_activity.dart';
 import '../widgets/activity_display.dart';
+import '../screens/settings_screen.dart';
 
 class ActiveAppScreen extends StatefulWidget {
   final ActivityService activityService;
@@ -44,6 +45,22 @@ class _ActiveAppScreenState extends State<ActiveAppScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Active App & Chrome URL Monitor'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SettingsScreen(
+                    settingsRepository:
+                        widget.activityService.settingsRepository,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Center(
         child: _currentActivity == null
