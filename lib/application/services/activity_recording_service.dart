@@ -92,4 +92,28 @@ class ActivityRecordingService {
     // アクティビティを記録
     startNewActivity(appName, chromeUrl);
   }
+
+  Future<List<ActivityRecord>> getActivitiesByDateRange(
+      DateTime start, DateTime end) async {
+    final activities = <ActivityRecord>[];
+
+    // 開始日から終了日までの各月のデータを取得
+    for (var date = start;
+        date.isBefore(end) || date.isAtSameMomentAs(end);
+        date = DateTime(date.year, date.month + 1)) {
+      final monthlyActivity = await getMonthlyActivity(date.year, date.month);
+      if (monthlyActivity != null) {
+        // その月の記録から指定範囲内のものだけを抽出
+        final filteredRecords = monthlyActivity.records
+            .where((daily) =>
+                !daily.date.isBefore(start) && !daily.date.isAfter(end))
+            .expand((daily) => daily.activities)
+            .toList();
+
+        activities.addAll(filteredRecords);
+      }
+    }
+
+    return activities;
+  }
 }

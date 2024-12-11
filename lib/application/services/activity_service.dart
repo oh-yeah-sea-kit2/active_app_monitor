@@ -62,4 +62,23 @@ class ActivityService {
   Future<void> dispose() async {
     await recordingService.dispose();
   }
+
+  Future<Map<String, Duration>> getWorkDurationsByDateRange(
+      DateTime start, DateTime end) async {
+    final activities =
+        await recordingService.getActivitiesByDateRange(start, end);
+
+    // アプリごとの作業時間を集計
+    final Map<String, Duration> appDurations = {};
+    for (var activity in activities) {
+      final duration = activity.endTime.difference(activity.startTime);
+      appDurations.update(
+        activity.appName,
+        (value) => value + duration,
+        ifAbsent: () => duration,
+      );
+    }
+
+    return appDurations;
+  }
 }

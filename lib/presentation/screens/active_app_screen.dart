@@ -4,6 +4,7 @@ import '../../application/services/activity_service.dart';
 import '../../domain/entities/app_activity.dart';
 import '../widgets/activity_display.dart';
 import '../screens/settings_screen.dart';
+import '../screens/work_duration_report_screen.dart';
 
 class ActiveAppScreen extends StatefulWidget {
   final ActivityService activityService;
@@ -46,6 +47,19 @@ class _ActiveAppScreenState extends State<ActiveAppScreen> {
       appBar: AppBar(
         title: Text('Active App & Chrome URL Monitor'),
         actions: [
+          IconButton(
+            icon: Icon(Icons.bar_chart),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => WorkDurationReportScreen(
+                    activityService: widget.activityService,
+                  ),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: Icon(Icons.settings),
             onPressed: () {
