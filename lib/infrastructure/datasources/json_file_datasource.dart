@@ -9,8 +9,12 @@ import 'package:active_app_monitor/domain/entities/activity_record.dart';
 class JsonFileDataSource extends BaseFileDataSource {
   Future<File> _getMonthlyFile(int year, int month) async {
     final dir = await appDir;
-    return File(path.join(dir.path,
-        'activity_record_${year}_${month.toString().padLeft(2, '0')}.json'));
+    final activitiesDir = Directory(path.join(dir.path, 'activities'));
+    if (!await activitiesDir.exists()) {
+      await activitiesDir.create(recursive: true);
+    }
+    return File(path.join(activitiesDir.path,
+        '${year}_${month.toString().padLeft(2, '0')}.json'));
   }
 
   Future<void> saveActivity(ActivityRecord record, DateTime date) async {

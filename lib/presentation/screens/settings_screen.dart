@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:path/path.dart' as path;
 import 'package:flutter/material.dart';
 import '../../domain/entities/monitor_settings.dart';
 import '../../domain/repositories/settings_repository.dart';
@@ -17,12 +19,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _appNameController = TextEditingController();
   final _domainController = TextEditingController();
   String? _appDirectoryPath;
+  String? _activitiesDirectoryPath;
 
   @override
   void initState() {
     super.initState();
     _loadSettings();
-    _loadAppDirectory();
+    _loadDirectoryPaths();
   }
 
   Future<void> _loadSettings() async {
@@ -32,10 +35,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
-  Future<void> _loadAppDirectory() async {
+  Future<void> _loadDirectoryPaths() async {
     final directory = await widget.settingsRepository.getAppDirectory();
+    final activitiesDir = Directory(path.join(directory.path, 'activities'));
+    if (!await activitiesDir.exists()) {
+      await activitiesDir.create(recursive: true);
+    }
+
     setState(() {
       _appDirectoryPath = directory.path;
+      _activitiesDirectoryPath = activitiesDir.path;
     });
   }
 
@@ -244,7 +253,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '設定ファイル:',
+                                      '設定��ァイル:',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -270,7 +279,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       ),
                                     ),
                                     SizedBox(height: 4),
-                                    Text('$_appDirectoryPath/activities/'),
+                                    Text('$_activitiesDirectoryPath/'),
                                   ],
                                 ),
                               ),
