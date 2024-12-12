@@ -63,13 +63,16 @@ class MonitorSettings {
   factory MonitorSettings.defaultSettings() {
     return MonitorSettings(
       targetApps: [
-        AppMonitorSetting(name: 'Visual Studio Code'),
+        AppMonitorSetting(name: 'Code'),
+        AppMonitorSetting(name: 'Cursor'),
+        AppMonitorSetting(name: 'Slack'),
         AppMonitorSetting(
           name: 'Google Chrome',
           details: {
             'target_domains': [
               'github.com',
               'stackoverflow.com',
+              "qiita.com",
             ],
           },
         ),

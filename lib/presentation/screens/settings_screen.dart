@@ -16,17 +16,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
   MonitorSettings? _settings;
   final _appNameController = TextEditingController();
   final _domainController = TextEditingController();
+  String? _appDirectoryPath;
 
   @override
   void initState() {
     super.initState();
     _loadSettings();
+    _loadAppDirectory();
   }
 
   Future<void> _loadSettings() async {
     final settings = await widget.settingsRepository.getSettings();
     setState(() {
       _settings = settings;
+    });
+  }
+
+  Future<void> _loadAppDirectory() async {
+    final directory = await widget.settingsRepository.getAppDirectory();
+    setState(() {
+      _appDirectoryPath = directory.path;
     });
   }
 
@@ -49,7 +58,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             if (isNewApp) ...[
               SizedBox(height: 8),
               Text(
-                '※ アプリ名は正確に入力してください\n例: Visual Studio Code, Google Chrome',
+                '※ アプリ名は正確に入力してください\n例: Code, Google Chrome',
                 style: TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
@@ -208,6 +217,73 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ],
                 ],
               )),
+          if (_appDirectoryPath != null) ...[
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'ファイル保存場所',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '設定ファイル:',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(height: 4),
+                                    Text('$_appDirectoryPath/settings.json'),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'アクティビティログ:',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(height: 4),
+                                    Text('$_appDirectoryPath/activities/'),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );

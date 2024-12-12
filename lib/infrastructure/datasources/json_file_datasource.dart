@@ -1,21 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
-
-import 'package:path_provider/path_provider.dart';
-
+import 'package:path/path.dart' as path;
+import 'base_file_datasource.dart';
 import 'package:active_app_monitor/domain/entities/daily_activity.dart';
 import 'package:active_app_monitor/domain/entities/monthly_activity.dart';
 import 'package:active_app_monitor/domain/entities/activity_record.dart';
 
-class JsonFileDataSource {
-  Future<String> get _localPath async {
-    final directory = await getApplicationDocumentsDirectory();
-    return directory.path;
-  }
-
+class JsonFileDataSource extends BaseFileDataSource {
   Future<File> _getMonthlyFile(int year, int month) async {
-    final path = await _localPath;
-    return File('$path/${year}_${month.toString().padLeft(2, '0')}.json');
+    final dir = await appDir;
+    return File(path.join(dir.path,
+        'activity_record_${year}_${month.toString().padLeft(2, '0')}.json'));
   }
 
   Future<void> saveActivity(ActivityRecord record, DateTime date) async {
@@ -27,13 +22,6 @@ class JsonFileDataSource {
         details = {'open_url': uri.host};
       }
     }
-
-    final modifiedRecord = ActivityRecord(
-      appName: record.appName,
-      startTime: record.startTime,
-      endTime: record.endTime,
-      details: details,
-    );
 
     final file = await _getMonthlyFile(date.year, date.month);
     MonthlyActivity monthlyActivity;
