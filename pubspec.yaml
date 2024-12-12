@@ -39,6 +39,8 @@ dependencies:
   path: ^1.9.0
   flutter_localizations:
     sdk: flutter
+  tray_manager: ^0.3.1
+  window_manager: ^0.4.3
 
 dev_dependencies:
   flutter_test:
@@ -71,9 +73,9 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/tray_icon.png
+    - assets/icon.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
