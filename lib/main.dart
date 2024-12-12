@@ -9,17 +9,31 @@ import 'application/services/activity_recording_service.dart';
 import 'presentation/screens/active_app_screen.dart';
 import 'infrastructure/datasources/settings_file_datasource.dart';
 
-void main() {
-  final platformDataSource = PlatformChannelDataSource();
-  final jsonDataSource = JsonFileDataSource();
-  final settingsRepository = SettingsRepositoryImpl(SettingsFileDataSource());
-  final repository = ActivityRepositoryImpl(platformDataSource);
-  final recordingService =
-      ActivityRecordingService(jsonDataSource, settingsRepository);
-  final service =
-      ActivityService(repository, recordingService, settingsRepository);
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(MyApp(activityService: service));
+  final settingsDataSource = SettingsFileDataSource();
+  final jsonFileDataSource = JsonFileDataSource();
+
+  final settingsRepository = SettingsRepositoryImpl(
+    settingsDataSource,
+    jsonFileDataSource,
+  );
+  final activityRepository =
+      ActivityRepositoryImpl(PlatformChannelDataSource());
+
+  final recordingService = ActivityRecordingService(
+    jsonFileDataSource,
+    settingsRepository,
+  );
+
+  final activityService = ActivityService(
+    activityRepository,
+    recordingService,
+    settingsRepository,
+  );
+
+  runApp(MyApp(activityService: activityService));
 }
 
 class MyApp extends StatelessWidget {
