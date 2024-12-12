@@ -13,10 +13,10 @@ class ActivityRecordingService {
   String? _currentAppName;
   String? _currentChromeUrl;
   Timer? _saveTimer;
-  static const saveIntervalSeconds = 10;
+  static const saveIntervalSeconds = 60;
 
   ActivityRecordingService(this._dataSource, this._settingsRepository) {
-    // 10秒ごとに現在のアクティビティを保存
+    // 60秒ごとに現在のアクティビティを保存
     _saveTimer =
         Timer.periodic(Duration(seconds: saveIntervalSeconds), (timer) {
       if (_currentActivityStartTime != null && _currentAppName != null) {
