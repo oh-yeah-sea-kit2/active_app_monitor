@@ -50,6 +50,7 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
       saveText: '選択',
       cancelText: 'キャンセル',
       confirmText: '確定',
+      locale: const Locale('ja', 'JP'),
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: Theme.of(context).copyWith(
