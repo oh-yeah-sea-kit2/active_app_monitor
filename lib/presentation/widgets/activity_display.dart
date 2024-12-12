@@ -16,174 +16,199 @@ class ActivityDisplay extends StatelessWidget {
 
     final sortedDomains = activity.chromeDomainDurations.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    print(sortedDomains);
 
     return SingleChildScrollView(
+      padding: EdgeInsets.all(16),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: EdgeInsets.all(16),
-            margin: EdgeInsets.symmetric(vertical: 16),
-            decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
-                ),
-              ],
+          _buildSummaryCard(),
+          SizedBox(height: 24),
+          if (sortedApps.isNotEmpty) ...[
+            _buildSectionCard(
+              '監視対象アプリの内訳',
+              sortedApps,
+              activity.todayWorkDuration!,
+              Colors.blue.shade100,
             ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '監視対象の作業時間',
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          activity.formattedWorkDuration,
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          '総作業時間',
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          activity.formattedTotalDuration,
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                if (sortedApps.isNotEmpty) ...[
-                  SizedBox(height: 24),
-                  Text(
-                    '監視対象アプリの内訳',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  _buildAppList(sortedApps, activity.todayWorkDuration!),
-                  if (sortedDomains.isNotEmpty) ...[
-                    SizedBox(height: 24),
-                    Text(
-                      'Chromeの監視ドメイン内訳',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    _buildAppList(sortedDomains, activity.todayWorkDuration!),
-                  ],
-                ],
-                if (sortedAllApps.isNotEmpty) ...[
-                  SizedBox(height: 24),
-                  Text(
-                    '全アプリの内訳',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  _buildAppList(sortedAllApps, activity.todayTotalDuration!),
-                ],
-              ],
+            SizedBox(height: 16),
+          ],
+          if (sortedDomains.isNotEmpty) ...[
+            _buildSectionCard(
+              'Chromeの監視ドメイン内訳',
+              sortedDomains,
+              activity.todayWorkDuration!,
+              Colors.green.shade100,
             ),
-          ),
+            SizedBox(height: 16),
+          ],
+          if (sortedAllApps.isNotEmpty)
+            _buildSectionCard(
+              '全アプリの内訳',
+              sortedAllApps,
+              activity.todayTotalDuration!,
+              Colors.grey.shade100,
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildAppList(
-      List<MapEntry<String, Duration>> apps, Duration totalDuration) {
-    return Column(
-      children: apps.map((entry) {
-        final percentage = totalDuration.inSeconds > 0
-            ? entry.value.inSeconds / totalDuration.inSeconds * 100
-            : 0.0;
+  Widget _buildSummaryCard() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: EdgeInsets.all(20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildSummaryItem(
+              '監視対象の作業時間',
+              activity.formattedWorkDuration,
+              Colors.blue,
+            ),
+            Container(
+              height: 50,
+              width: 1,
+              color: Colors.grey.shade300,
+            ),
+            _buildSummaryItem(
+              '総作業時間',
+              activity.formattedTotalDuration,
+              Colors.grey,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-        return Padding(
-          padding: EdgeInsets.symmetric(vertical: 8),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      entry.key,
-                      style: TextStyle(fontSize: 14),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Text(
-                    activity.formatDuration(entry.value),
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.blue,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 4),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: percentage / 100,
-                  backgroundColor: Colors.grey.withOpacity(0.2),
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    Colors.blue.withOpacity(0.7),
-                  ),
-                  minHeight: 6,
-                ),
-              ),
-              SizedBox(height: 2),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  '${percentage.toStringAsFixed(1)}%',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ),
-            ],
+  Widget _buildSummaryItem(String label, String value, Color color) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey.shade600,
           ),
-        );
-      }).toList(),
+        ),
+        SizedBox(height: 8),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSectionCard(
+    String title,
+    List<MapEntry<String, Duration>> items,
+    Duration totalDuration,
+    Color backgroundColor,
+  ) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Container(
+        decoration: BoxDecoration(
+          color: backgroundColor.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.all(16),
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade800,
+                ),
+              ),
+            ),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: items.length,
+              separatorBuilder: (context, index) => Divider(height: 1),
+              itemBuilder: (context, index) {
+                final item = items[index];
+                final percentage = totalDuration.inSeconds > 0
+                    ? item.value.inSeconds / totalDuration.inSeconds * 100
+                    : 0.0;
+
+                return Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              item.key,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Text(
+                            activity.formatDuration(item.value),
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.blue.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8),
+                      Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: percentage / 100,
+                              backgroundColor: Colors.grey.shade200,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.blue.shade400,
+                              ),
+                              minHeight: 8,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 4),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          '${percentage.toStringAsFixed(1)}%',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
