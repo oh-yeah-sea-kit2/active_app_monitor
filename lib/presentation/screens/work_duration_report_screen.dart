@@ -56,16 +56,8 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            appBarTheme: AppBarTheme(
-              backgroundColor: Theme.of(context).primaryColor,
-            ),
-            datePickerTheme: DatePickerThemeData(
-              rangeSelectionBackgroundColor: Colors.blue.withOpacity(0.1),
-              rangePickerHeaderHeadlineStyle: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            primaryColor: Colors.blue,
+            colorScheme: ColorScheme.light(primary: Colors.blue),
           ),
           child: child!,
         );
@@ -99,63 +91,110 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
 
     if (sortedItems.isEmpty) return SizedBox.shrink();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.all(16),
-          child: Text(
-            title,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+    return Card(
+      elevation: 2,
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+                Text(
+                  _formatDuration(totalDuration),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue.shade700,
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          itemCount: sortedItems.length,
-          itemBuilder: (context, index) {
-            final entry = sortedItems[index];
-            final percentage = totalDuration.inSeconds > 0
-                ? entry.value.inSeconds / totalDuration.inSeconds * 100
-                : 0.0;
+          Divider(height: 1),
+          ListView.separated(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            itemCount: sortedItems.length,
+            separatorBuilder: (context, index) => Divider(height: 1),
+            itemBuilder: (context, index) {
+              final entry = sortedItems[index];
+              final percentage = totalDuration.inSeconds > 0
+                  ? entry.value.inSeconds / totalDuration.inSeconds * 100
+                  : 0.0;
 
-            return ListTile(
-              title: Text(entry.key),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: 4),
-                  LinearProgressIndicator(
-                    value: percentage / 100,
-                    backgroundColor: Colors.grey.withOpacity(0.2),
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Colors.blue.withOpacity(0.7),
+              return Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            entry.key,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          _formatDuration(entry.value),
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.blue.shade700,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    '${percentage.toStringAsFixed(1)}%',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
+                    SizedBox(height: 8),
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: percentage / 100,
+                            backgroundColor: Colors.grey.shade200,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.blue.shade400,
+                            ),
+                            minHeight: 8,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-              trailing: Text(
-                _formatDuration(entry.value),
-                style: TextStyle(
-                  color: Colors.blue,
-                  fontWeight: FontWeight.bold,
+                    SizedBox(height: 4),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        '${percentage.toStringAsFixed(1)}%',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            );
-          },
-        ),
-      ],
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -164,38 +203,69 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('作業時間レポート'),
+        elevation: 0,
+        backgroundColor: Colors.blue.shade100,
       ),
       body: Column(
         children: [
-          Padding(
+          Container(
             padding: EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    _startDate == _endDate
-                        ? '${_formatDate(_startDate)}の作業時間'
-                        : '期間: ${_formatDate(_startDate)} ~ ${_formatDate(_endDate)}',
-                    style: TextStyle(fontSize: 16),
-                  ),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(16),
+                bottomRight: Radius.circular(16),
+              ),
+            ),
+            child: Card(
+              elevation: 0,
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _startDate == _endDate
+                            ? '${_formatDate(_startDate)}の作業時間'
+                            : '期間: ${_formatDate(_startDate)} ~ ${_formatDate(_endDate)}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: _selectDateRange,
+                      icon: Icon(Icons.calendar_today, size: 18),
+                      label: Text('期間を選択'),
+                      style: ElevatedButton.styleFrom(
+                        elevation: 0,
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      ),
+                    ),
+                  ],
                 ),
-                ElevatedButton.icon(
-                  onPressed: _selectDateRange,
-                  icon: Icon(Icons.calendar_today),
-                  label: Text('期間を選択'),
-                ),
-              ],
+              ),
             ),
           ),
           if (_isLoading)
-            CircularProgressIndicator()
+            Expanded(
+              child: Center(child: CircularProgressIndicator()),
+            )
           else
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   children: [
+                    SizedBox(height: 8),
                     _buildDurationList('アプリごとの作業時間', _appDurations),
                     _buildDurationList('Chromeのドメインごとの作業時間', _domainDurations),
+                    SizedBox(height: 16),
                   ],
                 ),
               ),
