@@ -92,10 +92,27 @@ class MonitorSettings {
       orElse: () => AppMonitorSetting(name: 'Google Chrome'),
     );
 
-    final uri = Uri.tryParse(url);
-    if (uri == null) return false;
+    // URLがhttpsまたはhttpで始まっていない場合は、ドメインとして直接比較
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      final isTarget = chromeApp.targetDomains.any((domain) {
+        final matches = url.endsWith(domain);
+        return matches;
+      });
+      return isTarget;
+    }
 
-    return chromeApp.targetDomains.any((domain) => uri.host.endsWith(domain));
+    // 完全なURLの場合は従来通りの処理
+    final uri = Uri.tryParse(url);
+    if (uri == null) {
+      return false;
+    }
+
+    final isTarget = chromeApp.targetDomains.any((domain) {
+      final matches = uri.host.endsWith(domain);
+      return matches;
+    });
+
+    return isTarget;
   }
 
   // アプリ設定の更新

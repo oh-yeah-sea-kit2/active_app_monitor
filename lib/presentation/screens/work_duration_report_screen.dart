@@ -15,7 +15,8 @@ class WorkDurationReportScreen extends StatefulWidget {
 class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
   DateTime _startDate = DateTime.now().subtract(Duration(days: 7));
   DateTime _endDate = DateTime.now();
-  Map<String, Duration> _durations = {};
+  Map<String, Duration> _appDurations = {};
+  Map<String, Duration> _domainDurations = {};
   bool _isLoading = false;
 
   @override
@@ -29,13 +30,14 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
       _isLoading = true;
     });
 
-    final durations = await widget.activityService.getWorkDurationsByDateRange(
+    final result = await widget.activityService.getWorkDurationsByDateRange(
       _startDate,
       _endDate,
     );
 
     setState(() {
-      _durations = durations;
+      _appDurations = result.appDurations;
+      _domainDurations = result.domainDurations;
       _isLoading = false;
     });
   }
@@ -86,16 +88,79 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
     return '$year/$month/$day';
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final sortedApps = _durations.entries.toList()
+  Widget _buildDurationList(String title, Map<String, Duration> durations) {
+    final sortedItems = durations.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
-    final totalDuration = sortedApps.fold<Duration>(
+    final totalDuration = sortedItems.fold<Duration>(
       Duration.zero,
       (total, entry) => total + entry.value,
     );
 
+    if (sortedItems.isEmpty) return SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.all(16),
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: sortedItems.length,
+          itemBuilder: (context, index) {
+            final entry = sortedItems[index];
+            final percentage = totalDuration.inSeconds > 0
+                ? entry.value.inSeconds / totalDuration.inSeconds * 100
+                : 0.0;
+
+            return ListTile(
+              title: Text(entry.key),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 4),
+                  LinearProgressIndicator(
+                    value: percentage / 100,
+                    backgroundColor: Colors.grey.withOpacity(0.2),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Colors.blue.withOpacity(0.7),
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    '${percentage.toStringAsFixed(1)}%',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+              trailing: Text(
+                _formatDuration(entry.value),
+                style: TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('作業時間レポート'),
@@ -122,85 +187,17 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
               ],
             ),
           ),
-          Container(
-            padding: EdgeInsets.all(16),
-            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                Text(
-                  'トータル作業時間',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  _formatDuration(totalDuration),
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                  ),
-                ),
-              ],
-            ),
-          ),
           if (_isLoading)
             CircularProgressIndicator()
           else
             Expanded(
-              child: ListView.builder(
-                itemCount: sortedApps.length,
-                itemBuilder: (context, index) {
-                  final entry = sortedApps[index];
-                  final percentage = totalDuration.inSeconds > 0
-                      ? entry.value.inSeconds / totalDuration.inSeconds * 100
-                      : 0.0;
-
-                  return ListTile(
-                    title: Text(entry.key),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(height: 4),
-                        LinearProgressIndicator(
-                          value: percentage / 100,
-                          backgroundColor: Colors.grey.withOpacity(0.2),
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.blue.withOpacity(0.7),
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          '${percentage.toStringAsFixed(1)}%',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                    trailing: Text(
-                      _formatDuration(entry.value),
-                      style: TextStyle(
-                        color: Colors.blue,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  );
-                },
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    _buildDurationList('アプリごとの作業時間', _appDurations),
+                    _buildDurationList('Chromeのドメインごとの作業時間', _domainDurations),
+                  ],
+                ),
               ),
             ),
         ],

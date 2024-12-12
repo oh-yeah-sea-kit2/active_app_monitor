@@ -7,6 +7,7 @@ class AppActivity {
   final Duration? todayTotalDuration;
   final Map<String, Duration> appDurations;
   final Map<String, Duration> allAppDurations;
+  final Map<String, Duration> chromeDomainDurations;
 
   AppActivity({
     required this.appName,
@@ -17,6 +18,7 @@ class AppActivity {
     this.todayTotalDuration,
     this.appDurations = const {},
     this.allAppDurations = const {},
+    this.chromeDomainDurations = const {},
   });
 
   String get formattedWorkDuration {

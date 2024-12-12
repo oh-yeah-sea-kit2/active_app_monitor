@@ -28,6 +28,7 @@ class ActivityService {
     Duration todayTotalDuration = Duration.zero;
     Map<String, Duration> appDurations = {};
     Map<String, Duration> allAppDurations = {};
+    Map<String, Duration> chromeDomainDurations = {};
 
     if (monthlyActivity != null) {
       final todayRecords = monthlyActivity.records
@@ -58,6 +59,19 @@ class ActivityService {
             ifAbsent: () => duration,
           );
         }
+
+        // Chromeのドメイン別作業時間を集計
+        if (record.appName == 'Google Chrome' &&
+            record.details.containsKey('open_url')) {
+          final domain = record.details['open_url'] as String;
+          if (settings.isTargetDomain(domain)) {
+            chromeDomainDurations.update(
+              domain,
+              (value) => value + duration,
+              ifAbsent: () => duration,
+            );
+          }
+        }
       }
     }
 
@@ -73,20 +87,24 @@ class ActivityService {
       todayTotalDuration: todayTotalDuration,
       appDurations: appDurations,
       allAppDurations: allAppDurations,
+      chromeDomainDurations: chromeDomainDurations,
     );
   }
 
   bool _isTargetActivity(ActivityRecord activity, MonitorSettings settings) {
+    // まずアプリが監視対象かチェック
     if (!settings.isTargetApp(activity.appName)) {
       return false;
     }
 
-    if (activity.appName == 'Google Chrome') {
-      final url = activity.details['open_url'] as String?;
-      if (url == null) return false;
+    // Chromeの場合は、URLが監視対象ドメインかもチェック
+    if (activity.appName == 'Google Chrome' &&
+        activity.details.containsKey('open_url')) {
+      final url = activity.details['open_url'] as String;
       return settings.isTargetDomain(url);
     }
 
+    // Chrome以外のアプリはここまで到達
     return true;
   }
 
@@ -94,24 +112,52 @@ class ActivityService {
     await recordingService.dispose();
   }
 
-  Future<Map<String, Duration>> getWorkDurationsByDateRange(
+  Future<WorkDurationResult> getWorkDurationsByDateRange(
       DateTime start, DateTime end) async {
     final activities =
         await recordingService.getActivitiesByDateRange(start, end);
     final settings = await settingsRepository.getSettings();
 
-    // アプリごとの作業時間を集計（監視対象のみ）
     final Map<String, Duration> appDurations = {};
-    for (var activity
-        in activities.where((a) => _isTargetActivity(a, settings))) {
+    final Map<String, Duration> domainDurations = {};
+
+    for (var activity in activities) {
       final duration = activity.endTime.difference(activity.startTime);
-      appDurations.update(
-        activity.appName,
-        (value) => value + duration,
-        ifAbsent: () => duration,
-      );
+
+      if (_isTargetActivity(activity, settings)) {
+        appDurations.update(
+          activity.appName,
+          (value) => value + duration,
+          ifAbsent: () => duration,
+        );
+
+        if (activity.appName == 'Google Chrome' &&
+            activity.details.containsKey('open_url')) {
+          final domain = activity.details['open_url'] as String;
+          if (settings.isTargetDomain(domain)) {
+            domainDurations.update(
+              domain,
+              (value) => value + duration,
+              ifAbsent: () => duration,
+            );
+          }
+        }
+      }
     }
 
-    return appDurations;
+    return WorkDurationResult(
+      appDurations: appDurations,
+      domainDurations: domainDurations,
+    );
   }
+}
+
+class WorkDurationResult {
+  final Map<String, Duration> appDurations;
+  final Map<String, Duration> domainDurations;
+
+  WorkDurationResult({
+    required this.appDurations,
+    required this.domainDurations,
+  });
 }

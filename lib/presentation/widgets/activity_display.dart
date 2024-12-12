@@ -14,6 +14,10 @@ class ActivityDisplay extends StatelessWidget {
     final sortedAllApps = activity.allAppDurations.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
+    final sortedDomains = activity.chromeDomainDurations.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    print(sortedDomains);
+
     return SingleChildScrollView(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -88,6 +92,18 @@ class ActivityDisplay extends StatelessWidget {
                   ),
                   SizedBox(height: 16),
                   _buildAppList(sortedApps, activity.todayWorkDuration!),
+                  if (sortedDomains.isNotEmpty) ...[
+                    SizedBox(height: 24),
+                    Text(
+                      'Chromeの監視ドメイン内訳',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    _buildAppList(sortedDomains, activity.todayWorkDuration!),
+                  ],
                 ],
                 if (sortedAllApps.isNotEmpty) ...[
                   SizedBox(height: 24),
