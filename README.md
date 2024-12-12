@@ -35,3 +35,13 @@ MacOSで1日の作業状況を記録したい
 ```sh
 flutter run -d macos
 ```
+
+## build
+
+```sh
+flutter build macos --release
+codesign -v "build/macos/Build/Products/Release/Active App Monitor.app"
+
+open build/macos/Build/Products/Release/
+ditto -c -k --keepParent "build/macos/Build/Products/Release/Active App Monitor.app" "ActiveAppMonitor.zip"
+```

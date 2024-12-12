@@ -28,5 +28,9 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Chromeで開いているページを記録するために使用します。</string>
+	<key>com.apple.security.automation.apple-events</key>
+	<true/>
 </dict>
 </plist>

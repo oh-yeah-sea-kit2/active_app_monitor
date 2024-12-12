@@ -9,7 +9,7 @@ class AppDelegate: FlutterAppDelegate {
 
     override func applicationDidFinishLaunching(_ notification: Notification) {
         let controller = self.mainFlutterWindow?.contentViewController as! FlutterViewController
-        let channel = FlutterMethodChannel(name: "com.example.active_app_display",
+        let channel = FlutterMethodChannel(name: "com.oh-yeah-sea-kit2.activeAppMonitor",
                                            binaryMessenger: controller.engine.binaryMessenger)
 
         channel.setMethodCallHandler { (call: FlutterMethodCall, result: @escaping FlutterResult) in

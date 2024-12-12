@@ -1,7 +1,8 @@
 import 'package:flutter/services.dart';
 
 class PlatformChannelDataSource {
-  static const platform = MethodChannel('com.example.active_app_display');
+  static const platform =
+      MethodChannel('com.oh-yeah-sea-kit2.activeAppMonitor');
 
   Future<String> getActiveApp() async {
     try {
