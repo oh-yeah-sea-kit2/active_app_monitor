@@ -45,7 +45,7 @@ class _ActiveAppScreenState extends State<ActiveAppScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Active App & Chrome URL Monitor'),
+        title: Text('Active App Monitor'),
         actions: [
           IconButton(
             icon: Icon(Icons.bar_chart),
