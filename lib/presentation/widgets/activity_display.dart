@@ -11,11 +11,8 @@ class ActivityDisplay extends StatelessWidget {
     final sortedApps = activity.appDurations.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
-    // 合計作業時間を計算
-    final totalDuration = sortedApps.fold<Duration>(
-      Duration.zero,
-      (total, entry) => total + entry.value,
-    );
+    final sortedAllApps = activity.allAppDurations.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     return SingleChildScrollView(
       child: Column(
@@ -37,114 +34,140 @@ class ActivityDisplay extends StatelessWidget {
             ),
             child: Column(
               children: [
-                Text(
-                  '本日の作業時間',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '監視対象の作業時間',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          activity.formattedWorkDuration,
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '総作業時間',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          activity.formattedTotalDuration,
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                SizedBox(height: 8),
-                Text(
-                  activity.formattedWorkDuration,
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                  ),
-                ),
-                SizedBox(height: 24),
                 if (sortedApps.isNotEmpty) ...[
+                  SizedBox(height: 24),
                   Text(
-                    '内訳',
+                    '監視対象アプリの内訳',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   SizedBox(height: 16),
-                  ...sortedApps.map((entry) {
-                    final percentage = totalDuration.inSeconds > 0
-                        ? entry.value.inSeconds / totalDuration.inSeconds * 100
-                        : 0.0;
-
-                    return Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  entry.key,
-                                  style: TextStyle(fontSize: 14),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              Text(
-                                activity.formatDuration(entry.value),
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.blue,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 4),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: LinearProgressIndicator(
-                              value: percentage / 100,
-                              backgroundColor: Colors.grey.withOpacity(0.2),
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.blue.withOpacity(0.7),
-                              ),
-                              minHeight: 6,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
+                  _buildAppList(sortedApps, activity.todayWorkDuration!),
+                ],
+                if (sortedAllApps.isNotEmpty) ...[
+                  SizedBox(height: 24),
+                  Text(
+                    '全アプリの内訳',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  _buildAppList(sortedAllApps, activity.todayTotalDuration!),
                 ],
               ],
             ),
           ),
-          Text(
-            'Current Active App:',
-            style: TextStyle(fontSize: 20),
-          ),
-          SizedBox(height: 10),
-          Text(
-            activity.appName,
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 20),
-          if (activity.chromeUrl != 'Not active')
-            Column(
-              children: [
-                Text(
-                  'Chrome URL:',
-                  style: TextStyle(fontSize: 20),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  activity.chromeUrl,
-                  style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
-                ),
-              ],
-            ),
-          SizedBox(height: 20),
-          Text(
-            'User Activity:',
-            style: TextStyle(fontSize: 20),
-          ),
-          SizedBox(height: 10),
-          Text(
-            activity.isUserActive ? 'User is active' : 'User is idle',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildAppList(
+      List<MapEntry<String, Duration>> apps, Duration totalDuration) {
+    return Column(
+      children: apps.map((entry) {
+        final percentage = totalDuration.inSeconds > 0
+            ? entry.value.inSeconds / totalDuration.inSeconds * 100
+            : 0.0;
+
+        return Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      entry.key,
+                      style: TextStyle(fontSize: 14),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(
+                    activity.formatDuration(entry.value),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 4),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: percentage / 100,
+                  backgroundColor: Colors.grey.withOpacity(0.2),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    Colors.blue.withOpacity(0.7),
+                  ),
+                  minHeight: 6,
+                ),
+              ),
+              SizedBox(height: 2),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  '${percentage.toStringAsFixed(1)}%',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 }

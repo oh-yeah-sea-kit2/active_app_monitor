@@ -28,6 +28,11 @@ class ActivityRecordingService {
   void startNewActivity(String appName, String? chromeUrl) {
     final now = DateTime.now();
 
+    // loginwindowまたはNo active applicationの場合は記録しない
+    if (appName == "No active application") {
+      return;
+    }
+
     // アプリが変更された場合のみ新しいアクティビティを開始
     if (_currentAppName != appName ||
         (_currentAppName == 'Google Chrome' &&

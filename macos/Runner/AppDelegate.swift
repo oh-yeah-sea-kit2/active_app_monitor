@@ -16,7 +16,12 @@ class AppDelegate: FlutterAppDelegate {
             switch call.method {
             case "getActiveApp":
                 if let activeApp = NSWorkspace.shared.frontmostApplication {
-                    result(activeApp.localizedName ?? "Unknown")
+                    let appName = activeApp.localizedName ?? "Unknown"
+                    if appName == "loginwindow" {
+                        result("No active application")  // loginwindowの場合は記録しない
+                    } else {
+                        result(appName)
+                    }
                 } else {
                     result("No active application")
                 }

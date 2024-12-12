@@ -1,7 +1,9 @@
+import '../../domain/entities/activity_record.dart';
 import '../../domain/entities/app_activity.dart';
 import '../../domain/repositories/activity_repository.dart';
 import '../services/activity_recording_service.dart';
 import '../../domain/repositories/settings_repository.dart';
+import '../../domain/entities/monitor_settings.dart';
 
 class ActivityService {
   final ActivityRepository repository;
@@ -15,6 +17,7 @@ class ActivityService {
     final appName = await repository.getActiveApp();
     final chromeUrl = await repository.getChromeURL();
     final isUserActive = await repository.getUserActivity();
+    final settings = await settingsRepository.getSettings();
 
     // 本日の作業時間を取得
     final now = DateTime.now();
@@ -22,7 +25,9 @@ class ActivityService {
         await recordingService.getMonthlyActivity(now.year, now.month);
 
     Duration todayWorkDuration = Duration.zero;
+    Duration todayTotalDuration = Duration.zero;
     Map<String, Duration> appDurations = {};
+    Map<String, Duration> allAppDurations = {};
 
     if (monthlyActivity != null) {
       final todayRecords = monthlyActivity.records
@@ -35,14 +40,24 @@ class ActivityService {
 
       for (var record in todayRecords) {
         final duration = record.endTime.difference(record.startTime);
-        todayWorkDuration += duration;
 
-        // アプリごとの作業時間を集計
-        appDurations.update(
+        // すべてのアプリの作業時間を集計
+        allAppDurations.update(
           record.appName,
           (value) => value + duration,
           ifAbsent: () => duration,
         );
+        todayTotalDuration += duration;
+
+        // 監視対象アプリの作業時間を集計
+        if (_isTargetActivity(record, settings)) {
+          todayWorkDuration += duration;
+          appDurations.update(
+            record.appName,
+            (value) => value + duration,
+            ifAbsent: () => duration,
+          );
+        }
       }
     }
 
@@ -55,8 +70,24 @@ class ActivityService {
       isUserActive: isUserActive,
       timestamp: DateTime.now(),
       todayWorkDuration: todayWorkDuration,
+      todayTotalDuration: todayTotalDuration,
       appDurations: appDurations,
+      allAppDurations: allAppDurations,
     );
+  }
+
+  bool _isTargetActivity(ActivityRecord activity, MonitorSettings settings) {
+    if (!settings.isTargetApp(activity.appName)) {
+      return false;
+    }
+
+    if (activity.appName == 'Google Chrome') {
+      final url = activity.details['open_url'] as String?;
+      if (url == null) return false;
+      return settings.isTargetDomain(url);
+    }
+
+    return true;
   }
 
   Future<void> dispose() async {
@@ -67,10 +98,12 @@ class ActivityService {
       DateTime start, DateTime end) async {
     final activities =
         await recordingService.getActivitiesByDateRange(start, end);
+    final settings = await settingsRepository.getSettings();
 
-    // アプリごとの作業時間を集計
+    // アプリごとの作業時間を集計（監視対象のみ）
     final Map<String, Duration> appDurations = {};
-    for (var activity in activities) {
+    for (var activity
+        in activities.where((a) => _isTargetActivity(a, settings))) {
       final duration = activity.endTime.difference(activity.startTime);
       appDurations.update(
         activity.appName,

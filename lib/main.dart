@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Active App & Chrome URL Monitor',
+      title: 'Active App Monitor',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
