@@ -62,7 +62,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             TextField(
               controller: appNameController,
               decoration: InputDecoration(labelText: 'アプリ名'),
-              enabled: isNewApp, // 既存のアプリ名は編集不可
+              enabled: isNewApp,
             ),
             if (isNewApp) ...[
               SizedBox(height: 8),
@@ -82,6 +82,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onPressed: () async {
               if (appNameController.text.isNotEmpty) {
                 if (isNewApp) {
+                  if (_settings!.isTargetApp(appNameController.text)) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('このアプリは既に追加されています'),
+                        backgroundColor: Colors.red.shade400,
+                      ),
+                    );
+                    return;
+                  }
                   final newSettings = _settings!.addApp(appNameController.text);
                   await widget.settingsRepository.saveSettings(newSettings);
                 }
@@ -116,6 +126,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 final chromeApp = _settings!.targetApps.firstWhere(
                   (app) => app.name == 'Google Chrome',
                 );
+
+                if (chromeApp.targetDomains.contains(_domainController.text)) {
+                  Navigator.pop(context); // ダイアログを閉じる
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('このドメインは既に追加されています'),
+                      backgroundColor: Colors.red.shade400,
+                    ),
+                  );
+                  return;
+                }
+
                 final newDomains = [
                   ...chromeApp.targetDomains,
                   _domainController.text
@@ -216,7 +238,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               context: context,
                               builder: (context) => AlertDialog(
                                 title: Text('アプリの削除'),
-                                content: Text('${app.name}を監視対象から削除しますか？'),
+                                content: Text('${app.name}を監視対象から削除しますか���'),
                                 actions: [
                                   TextButton(
                                     onPressed: () =>
