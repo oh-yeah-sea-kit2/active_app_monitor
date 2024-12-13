@@ -3,8 +3,8 @@ import '../datasources/platform_channel_datasource.dart';
 
 class ActivityRepositoryImpl implements ActivityRepository {
   final PlatformChannelDataSource dataSource;
-  // アクティビティのタイムアウト値（秒）
-  static const double activityTimeoutSeconds = 10.0;
+  // アクティビティのタイムアウト値を1分に設定
+  static const double activityTimeoutSeconds = 60.0; // 1分
 
   ActivityRepositoryImpl(this.dataSource);
 

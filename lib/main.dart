@@ -30,7 +30,6 @@ void main() async {
 
   final recordingService = ActivityRecordingService(
     jsonFileDataSource,
-    settingsRepository,
   );
 
   final activityService = ActivityService(

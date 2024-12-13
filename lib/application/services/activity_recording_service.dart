@@ -1,31 +1,17 @@
 import 'package:active_app_monitor/infrastructure/datasources/json_file_datasource.dart';
 import 'package:active_app_monitor/domain/entities/activity_record.dart';
 import 'package:active_app_monitor/domain/entities/monthly_activity.dart';
-import 'package:active_app_monitor/domain/entities/monitor_settings.dart';
-import 'package:active_app_monitor/domain/repositories/settings_repository.dart';
 import 'dart:async';
 
 class ActivityRecordingService {
   final JsonFileDataSource _dataSource;
-  final SettingsRepository _settingsRepository;
-  MonitorSettings? _currentSettings;
   DateTime? _currentActivityStartTime;
   String? _currentAppName;
   String? _currentChromeUrl;
-  Timer? _saveTimer;
-  static const saveIntervalSeconds = 60;
 
-  ActivityRecordingService(this._dataSource, this._settingsRepository) {
-    // 60秒ごとに現在のアクティビティを保存
-    _saveTimer =
-        Timer.periodic(Duration(seconds: saveIntervalSeconds), (timer) {
-      if (_currentActivityStartTime != null && _currentAppName != null) {
-        _saveCurrentActivity();
-      }
-    });
-  }
+  ActivityRecordingService(this._dataSource);
 
-  void startNewActivity(String appName, String? chromeUrl) {
+  Future<void> startNewActivity(String appName, String? chromeUrl) async {
     final now = DateTime.now();
 
     // loginwindowまたはNo active applicationの場合は記録しない
@@ -38,7 +24,7 @@ class ActivityRecordingService {
         (_currentAppName == 'Google Chrome' &&
             _currentChromeUrl != chromeUrl)) {
       if (_currentActivityStartTime != null && _currentAppName != null) {
-        _saveCurrentActivity();
+        await _saveCurrentActivity();
       }
       _currentActivityStartTime = now;
       _currentAppName = appName;
@@ -72,30 +58,9 @@ class ActivityRecordingService {
   }
 
   Future<void> dispose() async {
-    _saveTimer?.cancel();
     if (_currentActivityStartTime != null && _currentAppName != null) {
       await _saveCurrentActivity();
     }
-  }
-
-  Future<void> _checkAndRecordActivity(
-      String appName, String? chromeUrl) async {
-    if (_currentSettings == null) {
-      _currentSettings = await _settingsRepository.getSettings();
-    }
-
-    // アプリが監視対象でない場合は記録しない
-    if (!_currentSettings!.isTargetApp(appName)) return;
-
-    // Chromeの場合は、URLも監視対象かチェック
-    if (appName == 'Google Chrome' &&
-        chromeUrl != null &&
-        !_currentSettings!.isTargetDomain(chromeUrl)) {
-      return;
-    }
-
-    // アクティビティを記録
-    startNewActivity(appName, chromeUrl);
   }
 
   Future<List<ActivityRecord>> getActivitiesByDateRange(

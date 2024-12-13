@@ -19,6 +19,12 @@ class ActivityService {
     final isUserActive = await repository.getUserActivity();
     final settings = await settingsRepository.getSettings();
 
+    // ユーザーがアクティブな場合のみ記録
+    if (isUserActive) {
+      await recordingService.startNewActivity(
+          appName, chromeUrl != 'Not active' ? chromeUrl : null);
+    }
+
     // 本日の作業時間を取得
     final now = DateTime.now();
     final monthlyActivity =
@@ -74,9 +80,6 @@ class ActivityService {
         }
       }
     }
-
-    recordingService.startNewActivity(
-        appName, chromeUrl != 'Not active' ? chromeUrl : null);
 
     return AppActivity(
       appName: appName,
