@@ -123,6 +123,7 @@ class ActivityService {
 
     final Map<String, Duration> appDurations = {};
     final Map<String, Duration> domainDurations = {};
+    final Map<String, Duration> allAppDurations = {};
 
     for (var activity in activities) {
       final duration = activity.endTime.difference(activity.startTime);
@@ -145,12 +146,19 @@ class ActivityService {
             );
           }
         }
+
+        allAppDurations.update(
+          activity.appName,
+          (value) => value + duration,
+          ifAbsent: () => duration,
+        );
       }
     }
 
     return WorkDurationResult(
       appDurations: appDurations,
       domainDurations: domainDurations,
+      allAppDurations: allAppDurations,
     );
   }
 }
@@ -158,9 +166,11 @@ class ActivityService {
 class WorkDurationResult {
   final Map<String, Duration> appDurations;
   final Map<String, Duration> domainDurations;
+  final Map<String, Duration> allAppDurations;
 
   WorkDurationResult({
     required this.appDurations,
     required this.domainDurations,
+    required this.allAppDurations,
   });
 }

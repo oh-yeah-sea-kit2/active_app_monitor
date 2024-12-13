@@ -1,53 +1,96 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/app_activity.dart';
+import 'activity_chart_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ActivityDisplay extends StatelessWidget {
   final AppActivity activity;
+  final GlobalKey _chartKey = GlobalKey();
 
-  const ActivityDisplay({Key? key, required this.activity}) : super(key: key);
+  ActivityDisplay({Key? key, required this.activity}) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
+  Future<void> _shareToTwitter(BuildContext context) async {
+    final workDuration = activity.formattedWorkDuration;
+
+    // アプリの内訳を取得
     final sortedApps = activity.appDurations.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
-    final sortedAllApps = activity.allAppDurations.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+    // 上位3つを取得し、文字列に変換
+    final topApps = sortedApps.take(3);
+    final appBreakdown = topApps.map((entry) {
+      return '- ${entry.key}: ${activity.formatDuration(entry.value)}';
+    }).join('\n');
 
-    final sortedDomains = activity.chromeDomainDurations.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+    // 3つ以上ある場合は「etc...」を追加
+    final hasMore = sortedApps.length > 3;
+    final breakdownText = hasMore ? '$appBreakdown\netc...' : appBreakdown;
 
+    final text = '''今日の作業時間📊: $workDuration
+
+【内訳】
+$breakdownText
+
+#ActiveAppMonitor''';
+
+    final encodedText = Uri.encodeComponent(text);
+    final twitterUrl = 'https://twitter.com/intent/tweet?text=$encodedText';
+
+    if (await canLaunchUrl(Uri.parse(twitterUrl))) {
+      await launchUrl(Uri.parse(twitterUrl));
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Twitterを開けませんでした'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: EdgeInsets.all(16),
       child: Column(
         children: [
           _buildSummaryCard(),
-          SizedBox(height: 24),
-          if (sortedApps.isNotEmpty) ...[
-            _buildSectionCard(
-              '監視対象アプリの内訳',
-              sortedApps,
-              activity.todayWorkDuration!,
-              Colors.blue.shade100,
+          Align(
+            alignment: Alignment.centerRight,
+            child: Container(
+              margin: EdgeInsets.symmetric(vertical: 16),
+              child: ElevatedButton.icon(
+                onPressed: () => _shareToTwitter(context),
+                icon: Icon(
+                  Icons.share,
+                  size: 18,
+                  color: Colors.white,
+                ),
+                label: Text(
+                  'Twitterで共有',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF1DA1F2), // Twitterブランドカラー
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  elevation: 2,
+                ),
+              ),
             ),
-            SizedBox(height: 16),
-          ],
-          if (sortedDomains.isNotEmpty) ...[
-            _buildSectionCard(
-              'Chromeの監視ドメイン内訳',
-              sortedDomains,
-              activity.todayWorkDuration!,
-              Colors.green.shade100,
-            ),
-            SizedBox(height: 16),
-          ],
-          if (sortedAllApps.isNotEmpty)
-            _buildSectionCard(
-              '全アプリの内訳',
-              sortedAllApps,
-              activity.todayTotalDuration!,
-              Colors.grey.shade100,
-            ),
+          ),
+          RepaintBoundary(
+            key: _chartKey,
+            child: ActivityChartImage(activity: activity),
+          ),
         ],
       ),
     );
@@ -104,111 +147,6 @@ class ActivityDisplay extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildSectionCard(
-    String title,
-    List<MapEntry<String, Duration>> items,
-    Duration totalDuration,
-    Color backgroundColor,
-  ) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Container(
-        decoration: BoxDecoration(
-          color: backgroundColor.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade800,
-                ),
-              ),
-            ),
-            ListView.separated(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: items.length,
-              separatorBuilder: (context, index) => Divider(height: 1),
-              itemBuilder: (context, index) {
-                final item = items[index];
-                final percentage = totalDuration.inSeconds > 0
-                    ? item.value.inSeconds / totalDuration.inSeconds * 100
-                    : 0.0;
-
-                return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              item.key,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Text(
-                            activity.formatDuration(item.value),
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.blue.shade700,
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 8),
-                      Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: LinearProgressIndicator(
-                              value: percentage / 100,
-                              backgroundColor: Colors.grey.shade200,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.blue.shade400,
-                              ),
-                              minHeight: 8,
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 4),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          '${percentage.toStringAsFixed(1)}%',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

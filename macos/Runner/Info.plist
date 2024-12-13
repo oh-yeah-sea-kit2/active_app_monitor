@@ -32,5 +32,14 @@
 	<string>Chromeで開いているページを記録するために使用します。</string>
 	<key>com.apple.security.automation.apple-events</key>
 	<true/>
+	<key>LSApplicationQualifiedDefaultSessionIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.productivity</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>https</string>
+		<string>http</string>
+	</array>
 </dict>
 </plist>

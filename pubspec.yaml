@@ -41,6 +41,7 @@ dependencies:
     sdk: flutter
   tray_manager: ^0.3.1
   window_manager: ^0.4.3
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../application/services/activity_service.dart';
+import '../../domain/entities/app_activity.dart';
+import '../../presentation/widgets/activity_chart_image.dart';
 
 class WorkDurationReportScreen extends StatefulWidget {
   final ActivityService activityService;
@@ -17,6 +19,7 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
   DateTime _endDate = DateTime.now();
   Map<String, Duration> _appDurations = {};
   Map<String, Duration> _domainDurations = {};
+  Map<String, Duration> _allAppDurations = {};
   bool _isLoading = false;
 
   @override
@@ -38,6 +41,7 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
     setState(() {
       _appDurations = result.appDurations;
       _domainDurations = result.domainDurations;
+      _allAppDurations = result.allAppDurations;
       _isLoading = false;
     });
   }
@@ -200,6 +204,9 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final totalWorkDuration = _calculateTotalDuration(_appDurations);
+    final totalDuration = _calculateTotalDuration(_allAppDurations);
+
     return Scaffold(
       appBar: AppBar(
         title: Text('作業時間レポート'),
@@ -217,40 +224,100 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
                 bottomRight: Radius.circular(16),
               ),
             ),
-            child: Card(
-              elevation: 0,
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        _startDate == _endDate
-                            ? '${_formatDate(_startDate)}の作業時間'
-                            : '期間: ${_formatDate(_startDate)} ~ ${_formatDate(_endDate)}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
+            child: Column(
+              children: [
+                Card(
+                  elevation: 0,
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _startDate == _endDate
+                                ? '${_formatDate(_startDate)}の作業時間'
+                                : '期間: ${_formatDate(_startDate)} ~ ${_formatDate(_endDate)}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ),
-                      ),
+                        ElevatedButton.icon(
+                          onPressed: _selectDateRange,
+                          icon: Icon(Icons.calendar_today, size: 18),
+                          label: Text('期間を選択'),
+                          style: ElevatedButton.styleFrom(
+                            elevation: 0,
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                          ),
+                        ),
+                      ],
                     ),
-                    ElevatedButton.icon(
-                      onPressed: _selectDateRange,
-                      icon: Icon(Icons.calendar_today, size: 18),
-                      label: Text('期間を選択'),
-                      style: ElevatedButton.styleFrom(
-                        elevation: 0,
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+                SizedBox(height: 12),
+                Card(
+                  elevation: 0,
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '監視対象アプリの作業時間',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                            Text(
+                              _formatDuration(totalWorkDuration),
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              '全体の作業時間',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                            Text(
+                              _formatDuration(totalDuration),
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           if (_isLoading)
@@ -263,8 +330,19 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
                 child: Column(
                   children: [
                     SizedBox(height: 8),
-                    _buildDurationList('アプリごとの作業時間', _appDurations),
-                    _buildDurationList('Chromeのドメインごとの作業時間', _domainDurations),
+                    ActivityChartImage(
+                      activity: AppActivity(
+                        appName: '',
+                        chromeUrl: '',
+                        isUserActive: true,
+                        timestamp: DateTime.now(),
+                        appDurations: _appDurations,
+                        chromeDomainDurations: _domainDurations,
+                        allAppDurations: _allAppDurations,
+                        todayWorkDuration: totalWorkDuration,
+                        todayTotalDuration: totalDuration,
+                      ),
+                    ),
                     SizedBox(height: 16),
                   ],
                 ),
@@ -272,6 +350,13 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
             ),
         ],
       ),
+    );
+  }
+
+  Duration _calculateTotalDuration(Map<String, Duration> durations) {
+    return durations.values.fold(
+      Duration.zero,
+      (total, duration) => total + duration,
     );
   }
 
