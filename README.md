@@ -45,3 +45,21 @@ codesign -v "build/macos/Build/Products/Release/Active App Monitor.app"
 open build/macos/Build/Products/Release/
 ditto -c -k --keepParent "build/macos/Build/Products/Release/Active App Monitor.app" "ActiveAppMonitor.zip"
 ```
+
+## バージョンを上げる
+
+```sh
+dart pub global activate cider
+
+# バージョン確認
+cider version
+
+# バージョンアップ
+cider bump major     # メジャーバージョンを上げる (1.0.0 → 2.0.0)
+cider bump minor     # マイナーバージョンを上げる (1.0.0 → 1.1.0)
+cider bump patch     # パッチバージョンを上げる (1.0.0 → 1.0.1)
+cider bump build     # ビルド番号を上げる (1.0.0+1 → 1.0.0+2)
+
+# 特定のバージョンに設定
+cider version 1.2.3+4
+```
