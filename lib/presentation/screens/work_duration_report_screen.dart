@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../application/services/activity_service.dart';
 import '../../domain/entities/app_activity.dart';
 import '../../presentation/widgets/activity_chart_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class WorkDurationReportScreen extends StatefulWidget {
   final ActivityService activityService;
@@ -212,6 +213,23 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
         title: Text('作業時間レポート'),
         elevation: 0,
         backgroundColor: Colors.blue.shade100,
+        actions: [
+          TextButton.icon(
+            onPressed: () => _shareToTwitter(totalWorkDuration, totalDuration),
+            icon: Icon(
+              Icons.share,
+              color: Colors.blue,
+              size: 18,
+            ),
+            label: Text(
+              'Twitterで共有',
+              style: TextStyle(
+                color: Colors.blue,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -367,5 +385,50 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
       return '$hours時間$minutes分';
     }
     return '$minutes分';
+  }
+
+  Future<void> _shareToTwitter(
+      Duration workDuration, Duration totalDuration) async {
+    final period = _startDate == _endDate
+        ? '${_formatDate(_startDate)}の'
+        : '${_formatDate(_startDate)} ~ ${_formatDate(_endDate)}の';
+
+    // アプリの内訳を取得
+    final sortedApps = _appDurations.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    // 上位3つを取得し、文字列に変換
+    final topApps = sortedApps.take(3);
+    final appBreakdown = topApps.map((entry) {
+      return '- ${entry.key}: ${_formatDuration(entry.value)}';
+    }).join('\n');
+
+    // 3つ以上ある場合は「etc...」を追加
+    final hasMore = sortedApps.length > 3;
+    final breakdownText = hasMore ? '$appBreakdown\netc...' : appBreakdown;
+
+    final text = '''${period}作業時間📊:
+${_formatDuration(workDuration)}
+
+【内訳】
+$breakdownText
+
+#ActiveAppMonitor''';
+
+    final encodedText = Uri.encodeComponent(text);
+    final twitterUrl = 'https://twitter.com/intent/tweet?text=$encodedText';
+
+    if (await canLaunchUrl(Uri.parse(twitterUrl))) {
+      await launchUrl(Uri.parse(twitterUrl));
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Twitterを開けませんでした'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
