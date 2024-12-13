@@ -83,6 +83,12 @@ class JsonFileDataSource extends BaseFileDataSource {
   }
 
   bool _isSameActivityContext(ActivityRecord last, ActivityRecord current) {
+    final lastIsActive = last.details['is_active'] as bool? ?? true;
+    final currentIsActive = current.details['is_active'] as bool? ?? true;
+    if (lastIsActive != currentIsActive) {
+      return false;
+    }
+
     if (last.appName == 'Google Chrome') {
       return last.details['open_url'] == current.details['open_url'];
     }

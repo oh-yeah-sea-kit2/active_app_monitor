@@ -6,39 +6,70 @@ import 'dart:async';
 class ActivityRecordingService {
   final JsonFileDataSource _dataSource;
   DateTime? _currentActivityStartTime;
+  DateTime? _lastActiveTime;
   String? _currentAppName;
   String? _currentChromeUrl;
+  bool _currentIsUserActive = true;
 
   ActivityRecordingService(this._dataSource);
 
-  Future<void> startNewActivity(String appName, String? chromeUrl) async {
+  Future<void> startNewActivity(
+      String appName, String? chromeUrl, bool isUserActive) async {
     final now = DateTime.now();
 
-    // loginwindowまたはNo active applicationの場合は記録しない
-    if (appName == "No active application") {
+    // 非アクティブになった時
+    if (!isUserActive || appName == "No active application") {
+      if (_currentActivityStartTime != null && _currentAppName != null) {
+        _lastActiveTime = now;
+        _currentIsUserActive = false;
+        await _saveCurrentActivity();
+        // アクティビティをリセット
+        _currentActivityStartTime = null;
+        _currentAppName = null;
+        _currentChromeUrl = null;
+        _lastActiveTime = null;
+      }
       return;
     }
 
-    // アプリが変更された場合のみ新しいアクティビティを開始
-    if (_currentAppName != appName ||
-        (_currentAppName == 'Google Chrome' &&
-            _currentChromeUrl != chromeUrl)) {
-      if (_currentActivityStartTime != null && _currentAppName != null) {
-        await _saveCurrentActivity();
-      }
+    // 非アクティブ→アクティブの遷移時
+    if (_currentActivityStartTime == null) {
       _currentActivityStartTime = now;
       _currentAppName = appName;
       _currentChromeUrl = chromeUrl;
+      _currentIsUserActive = true;
+      await _saveCurrentActivity();
+      // 新しいアクティビティの開始時間を設定
+      _currentActivityStartTime = now;
+      return;
+    }
+
+    // アプリ切り替え時
+    if (_currentAppName != appName ||
+        (_currentAppName == 'Google Chrome' &&
+            _currentChromeUrl != chromeUrl)) {
+      _lastActiveTime = now;
+      await _saveCurrentActivity();
+      _currentActivityStartTime = now;
+      _currentAppName = appName;
+      _currentChromeUrl = chromeUrl;
+      _currentIsUserActive = true;
     }
   }
 
   Future<void> _saveCurrentActivity() async {
     if (_currentActivityStartTime == null || _currentAppName == null) return;
 
-    final endTime = DateTime.now();
-    final details = _currentChromeUrl != null
-        ? {'open_url': _currentChromeUrl}
-        : <String, dynamic>{};
+    final endTime = _lastActiveTime ?? DateTime.now();
+    final details = <String, dynamic>{
+      'is_active': _currentIsUserActive,
+    };
+    // Chromeの場合はドメインを追加
+    if (_currentAppName == 'Google Chrome') {
+      if (_currentChromeUrl != null) {
+        details['open_url'] = _currentChromeUrl;
+      }
+    }
 
     final record = ActivityRecord(
       appName: _currentAppName!,
@@ -50,7 +81,7 @@ class ActivityRecordingService {
     await _dataSource.saveActivity(record, _currentActivityStartTime!);
 
     // 保存後、新しいアクティビティの開始時間を更新
-    _currentActivityStartTime = endTime;
+    _currentActivityStartTime = DateTime.now();
   }
 
   Future<MonthlyActivity?> getMonthlyActivity(int year, int month) {
@@ -67,7 +98,7 @@ class ActivityRecordingService {
       DateTime start, DateTime end) async {
     final activities = <ActivityRecord>[];
 
-    // 開始日から終了日までの各月のデータを取得
+    // 開始日から終了日までの各日のデータを取得
     for (var date = start;
         date.isBefore(end) || date.isAtSameMomentAs(end);
         date = DateTime(date.year, date.month + 1)) {

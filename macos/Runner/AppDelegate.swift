@@ -54,31 +54,49 @@ class AppDelegate: FlutterAppDelegate {
         }
     }
 
-    private func getActiveChromeTabURL() -> String {
-        guard let activeApp = NSWorkspace.shared.frontmostApplication,
-            activeApp.localizedName == "Google Chrome" else {
-            return "Not active"
+    private func extractDomain(from url: String) -> String {
+        guard let url = URL(string: url) else { return "" }
+        
+        // ホスト名（ドメイン）を取得
+        guard let host = url.host else { return "" }
+        
+        // www.を除去（オプション）
+        if host.hasPrefix("www.") {
+            return String(host.dropFirst(4))
         }
+        
+        return host
+    }
 
+    private func getActiveChromeTabURL() -> String {
         let script = """
         tell application "Google Chrome"
-            if not (exists front window) then
-                return "No active window"
-            else
-                return URL of active tab of front window
-            end if
+            get URL of active tab of first window
         end tell
         """
-        var error: NSDictionary?
-        if let scriptObject = NSAppleScript(source: script) {
-            if let output = scriptObject.executeAndReturnError(&error).stringValue,
-               let url = URL(string: output) {
-                return url.host ?? output
-            } else if let error = error {
-                return "AppleScript Error: \(error)"
+        
+        let task = Process()
+        task.launchPath = "/usr/bin/osascript"
+        task.arguments = ["-e", script]
+        
+        let pipe = Pipe()
+        task.standardOutput = pipe
+        task.standardError = pipe
+        
+        do {
+            try task.run()
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            if let output = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) {
+                if !output.isEmpty && !output.contains("error") {
+                    // URLからドメインを抽出
+                    return extractDomain(from: output)
+                }
             }
+        } catch {
+            print("Error executing script: \(error)")
         }
-        return "Failed to execute script"
+        
+        return ""
     }
 
     // Secure Restorable Stateをサポートすることを明示

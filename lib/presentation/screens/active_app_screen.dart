@@ -33,7 +33,8 @@ class _ActiveAppScreenState extends State<ActiveAppScreen> {
   }
 
   void _startMonitoring() {
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) async {
+    // 2秒ごとにアクティビティを取得
+    _timer = Timer.periodic(const Duration(seconds: 2), (timer) async {
       final activity = await widget.activityService.getCurrentActivity();
       setState(() {
         _currentActivity = activity;

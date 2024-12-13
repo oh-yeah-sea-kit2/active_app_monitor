@@ -56,6 +56,7 @@ $breakdownText
       padding: EdgeInsets.all(16),
       child: Column(
         children: [
+          _buildStatusCard(),
           _buildSummaryCard(),
           Align(
             alignment: Alignment.centerRight,
@@ -92,6 +93,93 @@ $breakdownText
             child: ActivityChartImage(activity: activity),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildStatusCard() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: EdgeInsets.all(20),
+        child: Row(
+          children: [
+            Icon(
+              activity.isUserActive ? Icons.person : Icons.person_off,
+              color: activity.isUserActive ? Colors.green : Colors.grey,
+              size: 24,
+            ),
+            SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'ユーザー状態',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                Text(
+                  activity.isUserActive ? 'アクティブ' : 'アイドル',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: activity.isUserActive ? Colors.green : Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+            Spacer(),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '現在のアプリ',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                // Chromeの場合のドメイン表示用
+                if (activity.appName == 'Google Chrome' &&
+                    activity.chromeUrl.isNotEmpty)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        activity.appName,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade700,
+                        ),
+                      ),
+                      Text(
+                        activity.chromeUrl,
+                        style: TextStyle(
+                          fontSize: 12, // ドメインの文字サイズを小さく
+                          color: Colors.grey.shade600, // 色も薄くして区別しやすく
+                        ),
+                        textAlign: TextAlign.end,
+                      ),
+                    ],
+                  )
+                else
+                  Text(
+                    activity.appName,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue.shade700,
+                    ),
+                    textAlign: TextAlign.end,
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
