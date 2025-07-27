@@ -78,7 +78,6 @@ class JsonFileDataSource extends BaseFileDataSource {
       );
     }
 
-    print(file.path);
     await file.writeAsString(json.encode(monthlyActivity.toJson()));
   }
 
