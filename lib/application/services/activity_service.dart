@@ -15,7 +15,11 @@ class ActivityService {
 
   Future<AppActivity> getCurrentActivity() async {
     final appName = await repository.getActiveApp();
-    final chromeUrl = await repository.getChromeURL();
+    // Chromeがアクティブなときだけ問い合わせる。非アクティブ時にも問い合わせると
+    // 2秒ごとにosascriptを起動することになり、Chrome終了中はAppleEventで
+    // Chromeを起こしてしまう。
+    final chromeUrl =
+        appName == 'Google Chrome' ? await repository.getChromeURL() : '';
     final isUserActive = await repository.getUserActivity();
     final settings = await settingsRepository.getSettings();
 

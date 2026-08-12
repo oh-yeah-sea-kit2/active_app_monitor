@@ -33,13 +33,13 @@ MacOSで1日の作業状況を記録したい
 ## memo
 
 ```sh
-flutter run -d macos
+fvm flutter run -d macos
 ```
 
 ## build
 
 ```sh
-flutter build macos --release
+fvm flutter build macos --release
 codesign -v "build/macos/Build/Products/Release/Active App Monitor.app"
 
 open build/macos/Build/Products/Release/
@@ -49,17 +49,17 @@ ditto -c -k --keepParent "build/macos/Build/Products/Release/Active App Monitor.
 ## バージョンを上げる
 
 ```sh
-dart pub global activate cider
+fvm dart pub global activate cider
 
 # バージョン確認
-cider version
+fvm dart run cider version
 
 # バージョンアップ
-cider bump major     # メジャーバージョンを上げる (1.0.0 → 2.0.0)
-cider bump minor     # マイナーバージョンを上げる (1.0.0 → 1.1.0)
-cider bump patch     # パッチバージョンを上げる (1.0.0 → 1.0.1)
-cider bump build     # ビルド番号を上げる (1.0.0+1 → 1.0.0+2)
+fvm dart run cider bump major     # メジャーバージョンを上げる (1.0.0 → 2.0.0)
+fvm dart run cider bump minor     # マイナーバージョンを上げる (1.0.0 → 1.1.0)
+fvm dart run cider bump patch     # パッチバージョンを上げる (1.0.0 → 1.0.1)
+fvm dart run cider bump build     # ビルド番号を上げる (1.0.0+1 → 1.0.0+2)
 
 # 特定のバージョンに設定
-cider version 1.2.3+4
+fvm dart run cider version 1.2.3+4
 ```
