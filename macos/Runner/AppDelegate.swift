@@ -68,13 +68,29 @@ class AppDelegate: FlutterAppDelegate {
         return host
     }
 
+    private func isChromeRunning() -> Bool {
+        return NSWorkspace.shared.runningApplications.contains {
+            $0.bundleIdentifier == "com.google.Chrome"
+        }
+    }
+
     private func getActiveChromeTabURL() -> String {
+        // Chromeが起動していない状態でAppleEventを送ると、AppleScriptの仕様で
+        // Chromeが自動起動してしまう。起動中のときだけ問い合わせる。
+        guard isChromeRunning() else { return "" }
+
+        // AppleScript側でも is running でガードする（起動と起動判定の間に
+        // Chromeが終了した場合の保険）。ウィンドウ0個のときのエラーも避ける。
         let script = """
-        tell application "Google Chrome"
-            get URL of active tab of first window
-        end tell
+        if application "Google Chrome" is running then
+            tell application "Google Chrome"
+                if (count of windows) > 0 then
+                    get URL of active tab of first window
+                end if
+            end tell
+        end if
         """
-        
+
         let task = Process()
         task.launchPath = "/usr/bin/osascript"
         task.arguments = ["-e", script]
