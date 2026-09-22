@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../infrastructure/datasources/platform_channel_datasource.dart';
 
 class PermissionStatusWidget extends StatefulWidget {
-  const PermissionStatusWidget({Key? key}) : super(key: key);
+  const PermissionStatusWidget({super.key});
 
   @override
   State<PermissionStatusWidget> createState() => _PermissionStatusWidgetState();

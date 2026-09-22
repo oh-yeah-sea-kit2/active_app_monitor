@@ -9,12 +9,12 @@ class AppSettingsDialog extends StatelessWidget {
   final Function() onSettingsChanged;
 
   const AppSettingsDialog({
-    Key? key,
+    super.key,
     this.app,
     required this.settingsRepository,
     required this.settings,
     required this.onSettingsChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +33,7 @@ class AppSettingsDialog extends StatelessWidget {
                 future: settingsRepository.getUsedAppNames(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
-                    return CircularProgressIndicator();
+                    return const CircularProgressIndicator();
                   }
 
                   final usedApps = snapshot.data!
@@ -44,7 +44,7 @@ class AppSettingsDialog extends StatelessWidget {
                   return Column(
                     children: [
                       DropdownButton<String>(
-                        hint: Text('使用したアプリから選択'),
+                        hint: const Text('使用したアプリから選択'),
                         value: selectedApp.value,
                         isExpanded: true,
                         items: usedApps
@@ -60,7 +60,7 @@ class AppSettingsDialog extends StatelessWidget {
                           });
                         },
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       Text(
                         'または新しいアプリ名を入力：',
                         style: TextStyle(
@@ -75,7 +75,7 @@ class AppSettingsDialog extends StatelessWidget {
             ],
             TextField(
               controller: appNameController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'アプリ名',
                 hintText: '例: Visual Studio Code',
               ),
@@ -86,7 +86,7 @@ class AppSettingsDialog extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('キャンセル'),
+            child: const Text('キャンセル'),
           ),
           TextButton(
             onPressed: () async {
@@ -96,7 +96,7 @@ class AppSettingsDialog extends StatelessWidget {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('このアプリは既に追加されています'),
+                        content: const Text('このアプリは既に追加されています'),
                         backgroundColor: Colors.red.shade400,
                       ),
                     );
@@ -106,7 +106,9 @@ class AppSettingsDialog extends StatelessWidget {
                   await settingsRepository.saveSettings(newSettings);
                 }
                 await onSettingsChanged();
-                Navigator.pop(context);
+                if (context.mounted) {
+                  Navigator.pop(context);
+                }
               }
             },
             child: Text(isNewApp ? '追加' : '保存'),

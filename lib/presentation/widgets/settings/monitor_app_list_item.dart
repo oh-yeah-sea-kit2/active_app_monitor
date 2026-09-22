@@ -12,19 +12,19 @@ class MonitorAppListItem extends StatelessWidget {
   final Function() onShowAddDomain;
 
   const MonitorAppListItem({
-    Key? key,
+    super.key,
     required this.app,
     required this.settings,
     required this.settingsRepository,
     required this.onSettingsChanged,
     required this.onShowAppSettings,
     required this.onShowAddDomain,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -63,16 +63,16 @@ class MonitorAppListItem extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('アプリの削除'),
+        title: const Text('アプリの削除'),
         content: Text('${app.name}を監視対象から削除しますか'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('キャンセル'),
+            child: const Text('キャンセル'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(
+            child: const Text(
               '削除',
               style: TextStyle(color: Colors.red),
             ),

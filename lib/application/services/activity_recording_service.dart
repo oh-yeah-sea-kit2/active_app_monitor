@@ -38,9 +38,6 @@ class ActivityRecordingService {
       _currentAppName = appName;
       _currentChromeUrl = chromeUrl;
       _currentIsUserActive = true;
-      await _saveCurrentActivity();
-      // 新しいアクティビティの開始時間を設定
-      _currentActivityStartTime = now;
       return;
     }
 
@@ -58,9 +55,20 @@ class ActivityRecordingService {
   }
 
   Future<void> _saveCurrentActivity() async {
-    if (_currentActivityStartTime == null || _currentAppName == null) return;
+    final record = getInProgressActivity(_lastActiveTime ?? DateTime.now());
+    if (record == null) return;
 
-    final endTime = _lastActiveTime ?? DateTime.now();
+    await _dataSource.saveActivity(record, record.startTime);
+
+    // 保存後、新しいアクティビティの開始時間を更新
+    _currentActivityStartTime = DateTime.now();
+  }
+
+  ActivityRecord? getInProgressActivity(DateTime endTime) {
+    if (_currentActivityStartTime == null || _currentAppName == null) {
+      return null;
+    }
+
     final details = <String, dynamic>{
       'is_active': _currentIsUserActive,
     };
@@ -77,11 +85,7 @@ class ActivityRecordingService {
       endTime: endTime,
       details: details,
     );
-
-    await _dataSource.saveActivity(record, _currentActivityStartTime!);
-
-    // 保存後、新しいアクティビティの開始時間を更新
-    _currentActivityStartTime = DateTime.now();
+    return record;
   }
 
   Future<MonthlyActivity?> getMonthlyActivity(int year, int month) {
@@ -112,6 +116,20 @@ class ActivityRecordingService {
             .toList();
 
         activities.addAll(filteredRecords);
+      }
+    }
+
+    final inProgress = getInProgressActivity(DateTime.now());
+    if (inProgress != null) {
+      final activityDay = DateTime(
+        inProgress.startTime.year,
+        inProgress.startTime.month,
+        inProgress.startTime.day,
+      );
+      final startDay = DateTime(start.year, start.month, start.day);
+      final endDay = DateTime(end.year, end.month, end.day);
+      if (!activityDay.isBefore(startDay) && !activityDay.isAfter(endDay)) {
+        activities.add(inProgress);
       }
     }
 

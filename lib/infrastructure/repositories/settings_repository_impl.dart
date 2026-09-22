@@ -24,7 +24,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
   @override
   Future<Set<String>> getUsedAppNames() async {
     final now = DateTime.now();
-    final usedApps = Set<String>();
+    final usedApps = <String>{};
 
     // 過去3ヶ月分のログを確認
     for (var i = 0; i < 3; i++) {
@@ -49,7 +49,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
   @override
   Future<Set<String>> getUsedDomains() async {
     final now = DateTime.now();
-    final usedDomains = Set<String>();
+    final usedDomains = <String>{};
 
     // 過去3ヶ月分のログを確認
     for (var i = 0; i < 3; i++) {

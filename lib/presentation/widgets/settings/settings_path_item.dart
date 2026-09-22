@@ -5,10 +5,10 @@ class SettingsPathItem extends StatelessWidget {
   final String path;
 
   const SettingsPathItem({
-    Key? key,
+    super.key,
     required this.label,
     required this.path,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,9 +22,9 @@ class SettingsPathItem extends StatelessWidget {
             color: Colors.blue.shade700,
           ),
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Container(
-          padding: EdgeInsets.all(8),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: Colors.grey.shade100,
             borderRadius: BorderRadius.circular(8),

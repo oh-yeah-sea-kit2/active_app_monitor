@@ -46,6 +46,14 @@ class ActivityService {
           .expand((daily) => daily.activities)
           .toList();
 
+      final inProgressActivity = recordingService.getInProgressActivity(now);
+      if (inProgressActivity != null &&
+          inProgressActivity.startTime.year == now.year &&
+          inProgressActivity.startTime.month == now.month &&
+          inProgressActivity.startTime.day == now.day) {
+        todayRecords.add(inProgressActivity);
+      }
+
       for (var record in todayRecords) {
         final duration = record.endTime.difference(record.startTime);
 
@@ -77,6 +85,28 @@ class ActivityService {
               (value) => value + duration,
               ifAbsent: () => duration,
             );
+          }
+        }
+      }
+    } else {
+      final inProgressActivity = recordingService.getInProgressActivity(now);
+      if (inProgressActivity != null &&
+          inProgressActivity.startTime.year == now.year &&
+          inProgressActivity.startTime.month == now.month &&
+          inProgressActivity.startTime.day == now.day) {
+        final duration =
+            inProgressActivity.endTime.difference(inProgressActivity.startTime);
+        allAppDurations[inProgressActivity.appName] = duration;
+        todayTotalDuration = duration;
+        if (_isTargetActivity(inProgressActivity, settings)) {
+          appDurations[inProgressActivity.appName] = duration;
+          todayWorkDuration = duration;
+        }
+        if (inProgressActivity.appName == 'Google Chrome' &&
+            inProgressActivity.details.containsKey('open_url')) {
+          final domain = inProgressActivity.details['open_url'] as String;
+          if (settings.isTargetDomain(domain)) {
+            chromeDomainDurations[domain] = duration;
           }
         }
       }

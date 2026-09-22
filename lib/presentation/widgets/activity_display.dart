@@ -5,9 +5,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 class ActivityDisplay extends StatelessWidget {
   final AppActivity activity;
-  final GlobalKey _chartKey = GlobalKey();
 
-  ActivityDisplay({Key? key, required this.activity}) : super(key: key);
+  const ActivityDisplay({super.key, required this.activity});
 
   Future<void> _shareToTwitter(BuildContext context) async {
     final workDuration = activity.formattedWorkDuration;
@@ -41,7 +40,7 @@ $breakdownText
     } else {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Twitterを開けませんでした'),
             backgroundColor: Colors.red,
           ),
@@ -53,7 +52,7 @@ $breakdownText
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           _buildStatusCard(),
@@ -61,15 +60,15 @@ $breakdownText
           Align(
             alignment: Alignment.centerRight,
             child: Container(
-              margin: EdgeInsets.symmetric(vertical: 16),
+              margin: const EdgeInsets.symmetric(vertical: 16),
               child: ElevatedButton.icon(
                 onPressed: () => _shareToTwitter(context),
-                icon: Icon(
+                icon: const Icon(
                   Icons.share,
                   size: 18,
                   color: Colors.white,
                 ),
-                label: Text(
+                label: const Text(
                   'Twitterで共有',
                   style: TextStyle(
                     color: Colors.white,
@@ -77,9 +76,9 @@ $breakdownText
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF1DA1F2), // Twitterブランドカラー
+                  backgroundColor: const Color(0xFF1DA1F2), // Twitterブランドカラー
                   foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -89,7 +88,6 @@ $breakdownText
             ),
           ),
           RepaintBoundary(
-            key: _chartKey,
             child: ActivityChartImage(activity: activity),
           ),
         ],
@@ -102,7 +100,7 @@ $breakdownText
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Row(
           children: [
             Icon(
@@ -110,7 +108,7 @@ $breakdownText
               color: activity.isUserActive ? Colors.green : Colors.grey,
               size: 24,
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -131,7 +129,7 @@ $breakdownText
                 ),
               ],
             ),
-            Spacer(),
+            const Spacer(),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -189,7 +187,7 @@ $breakdownText
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
@@ -225,7 +223,7 @@ $breakdownText
             color: Colors.grey.shade600,
           ),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Text(
           value,
           style: TextStyle(

@@ -6,15 +6,15 @@ class SettingsFilePaths extends StatelessWidget {
   final String activitiesDirectoryPath;
 
   const SettingsFilePaths({
-    Key? key,
+    super.key,
     required this.appDirectoryPath,
     required this.activitiesDirectoryPath,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: EdgeInsets.only(top: 16),
+      margin: const EdgeInsets.only(top: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -31,12 +31,12 @@ class SettingsFilePaths extends StatelessWidget {
                 color: Colors.grey.shade800,
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             SettingsPathItem(
               label: '設定ファイル',
               path: '$appDirectoryPath/settings.json',
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             SettingsPathItem(
               label: 'アクティビティログ',
               path: '$activitiesDirectoryPath/',
