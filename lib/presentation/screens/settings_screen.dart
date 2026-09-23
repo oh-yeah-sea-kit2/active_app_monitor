@@ -12,11 +12,10 @@ import '../widgets/settings/settings_file_paths.dart';
 class SettingsScreen extends StatefulWidget {
   final SettingsRepository settingsRepository;
 
-  const SettingsScreen({Key? key, required this.settingsRepository})
-      : super(key: key);
+  const SettingsScreen({super.key, required this.settingsRepository});
 
   @override
-  _SettingsScreenState createState() => _SettingsScreenState();
+  State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
@@ -81,31 +80,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (_settings == null) {
       return Scaffold(
         appBar: AppBar(
-          title: Text('監視設定'),
+          title: const Text('監視設定'),
           backgroundColor: Colors.blue.shade100,
         ),
-        body: Center(child: CircularProgressIndicator()),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('監視設定'),
+        title: const Text('監視設定'),
         backgroundColor: Colors.blue.shade100,
         elevation: 0,
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAppSettingsDialog(null),
-        child: Icon(Icons.add),
         tooltip: '監視アプリを追加',
         backgroundColor: Colors.blue.shade400,
+        child: const Icon(Icons.add),
       ),
       body: Column(
         children: [
-          SettingsHeader(),
+          const SettingsHeader(),
           Expanded(
             child: ListView(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               children: [
                 ..._settings!.targetApps.map(
                   (app) => MonitorAppListItem(

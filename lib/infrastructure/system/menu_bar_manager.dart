@@ -6,7 +6,7 @@ class MenuBarManager {
   static Future<void> initialize() async {
     // トレイアイコンの設定
     await trayManager.setIcon(
-      'assets/icon.png',
+      'assets/tray_icon.png',
       isTemplate: false,
     );
 

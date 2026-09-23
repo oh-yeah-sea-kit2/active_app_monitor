@@ -30,4 +30,21 @@ class PlatformChannelDataSource {
       return 0.0;
     }
   }
+
+  Future<bool> checkAccessibilityPermission() async {
+    try {
+      final result = await platform.invokeMethod('checkAccessibilityPermission');
+      return result as bool? ?? false;
+    } on PlatformException {
+      return false;
+    }
+  }
+
+  Future<void> requestAccessibilityPermission() async {
+    try {
+      await platform.invokeMethod('requestAccessibilityPermission');
+    } on PlatformException {
+      // エラーが発生した場合は無視
+    }
+  }
 }

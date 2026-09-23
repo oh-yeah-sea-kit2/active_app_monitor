@@ -54,7 +54,7 @@ void main() async {
 class MyApp extends StatelessWidget {
   final ActivityService activityService;
 
-  const MyApp({Key? key, required this.activityService}) : super(key: key);
+  const MyApp({super.key, required this.activityService});
 
   @override
   Widget build(BuildContext context) {

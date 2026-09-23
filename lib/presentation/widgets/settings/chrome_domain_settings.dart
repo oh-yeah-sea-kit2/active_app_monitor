@@ -10,20 +10,20 @@ class ChromeDomainSettings extends StatelessWidget {
   final Function() onShowAddDomain;
 
   const ChromeDomainSettings({
-    Key? key,
+    super.key,
     required this.app,
     required this.settings,
     required this.settingsRepository,
     required this.onSettingsChanged,
     required this.onShowAddDomain,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.blue.shade50,
-        borderRadius: BorderRadius.only(
+        borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(12),
           bottomRight: Radius.circular(12),
         ),
@@ -65,7 +65,7 @@ class ChromeDomainSettings extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
         ],
       ),
     );

@@ -9,12 +9,12 @@ class AddDomainDialog extends StatelessWidget {
   final Function() onSettingsChanged;
 
   const AddDomainDialog({
-    Key? key,
+    super.key,
     required this.domainController,
     required this.settingsRepository,
     required this.settings,
     required this.onSettingsChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +22,7 @@ class AddDomainDialog extends StatelessWidget {
 
     return StatefulBuilder(
       builder: (context, setState) => AlertDialog(
-        title: Text('監視ドメインを追加'),
+        title: const Text('監視ドメインを追加'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -30,7 +30,7 @@ class AddDomainDialog extends StatelessWidget {
               future: settingsRepository.getUsedDomains(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
-                  return CircularProgressIndicator();
+                  return const CircularProgressIndicator();
                 }
 
                 final chromeApp = settings.targetApps
@@ -45,7 +45,7 @@ class AddDomainDialog extends StatelessWidget {
                 return Column(
                   children: [
                     DropdownButton<String>(
-                      hint: Text('使用したドメインから選択'),
+                      hint: const Text('使用したドメインから選択'),
                       value: selectedDomain.value,
                       isExpanded: true,
                       items: usedDomains
@@ -61,7 +61,7 @@ class AddDomainDialog extends StatelessWidget {
                         });
                       },
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     Text(
                       'または新しいドメインを入力：',
                       style: TextStyle(
@@ -75,14 +75,14 @@ class AddDomainDialog extends StatelessWidget {
             ),
             TextField(
               controller: domainController,
-              decoration: InputDecoration(labelText: 'ドメイン (例: github.com)'),
+              decoration: const InputDecoration(labelText: 'ドメイン (例: github.com)'),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('キャンセル'),
+            child: const Text('キャンセル'),
           ),
           TextButton(
             onPressed: () async {
@@ -94,7 +94,7 @@ class AddDomainDialog extends StatelessWidget {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('このドメインは既に追加されています'),
+                      content: const Text('このドメインは既に追加されています'),
                       backgroundColor: Colors.red.shade400,
                     ),
                   );
@@ -110,10 +110,12 @@ class AddDomainDialog extends StatelessWidget {
                 await settingsRepository.saveSettings(newSettings);
                 await onSettingsChanged();
                 domainController.clear();
-                Navigator.pop(context);
+                if (context.mounted) {
+                  Navigator.pop(context);
+                }
               }
             },
-            child: Text('追加'),
+            child: const Text('追加'),
           ),
         ],
       ),

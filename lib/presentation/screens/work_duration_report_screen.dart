@@ -7,16 +7,15 @@ import 'package:url_launcher/url_launcher.dart';
 class WorkDurationReportScreen extends StatefulWidget {
   final ActivityService activityService;
 
-  const WorkDurationReportScreen({Key? key, required this.activityService})
-      : super(key: key);
+  const WorkDurationReportScreen({super.key, required this.activityService});
 
   @override
-  _WorkDurationReportScreenState createState() =>
+  State<WorkDurationReportScreen> createState() =>
       _WorkDurationReportScreenState();
 }
 
 class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
-  DateTime _startDate = DateTime.now().subtract(Duration(days: 7));
+  DateTime _startDate = DateTime.now().subtract(const Duration(days: 7));
   DateTime _endDate = DateTime.now();
   Map<String, Duration> _appDurations = {};
   Map<String, Duration> _domainDurations = {};
@@ -62,7 +61,7 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             primaryColor: Colors.blue,
-            colorScheme: ColorScheme.light(primary: Colors.blue),
+            colorScheme: const ColorScheme.light(primary: Colors.blue),
           ),
           child: child!,
         );
@@ -92,18 +91,22 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('作業時間レポート'),
+        title: const Text('作業時間レポート'),
         elevation: 0,
         backgroundColor: Colors.blue.shade100,
         actions: [
           TextButton.icon(
-            onPressed: () => _shareToTwitter(totalWorkDuration, totalDuration),
-            icon: Icon(
+            onPressed: () => _shareToTwitter(
+              context,
+              totalWorkDuration,
+              totalDuration,
+            ),
+            icon: const Icon(
               Icons.share,
               color: Colors.blue,
               size: 18,
             ),
-            label: Text(
+            label: const Text(
               'Twitterで共有',
               style: TextStyle(
                 color: Colors.blue,
@@ -116,10 +119,10 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
       body: Column(
         children: [
           Container(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.blue.shade50,
-              borderRadius: BorderRadius.only(
+              borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(16),
                 bottomRight: Radius.circular(16),
               ),
@@ -133,7 +136,7 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     child: Row(
                       children: [
                         Expanded(
@@ -141,7 +144,7 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
                             _startDate == _endDate
                                 ? '${_formatDate(_startDate)}の作業時間'
                                 : '期間: ${_formatDate(_startDate)} ~ ${_formatDate(_endDate)}',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                             ),
@@ -149,11 +152,11 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
                         ),
                         ElevatedButton.icon(
                           onPressed: _selectDateRange,
-                          icon: Icon(Icons.calendar_today, size: 18),
-                          label: Text('期間を選択'),
+                          icon: const Icon(Icons.calendar_today, size: 18),
+                          label: const Text('期間を選択'),
                           style: ElevatedButton.styleFrom(
                             elevation: 0,
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 12),
                           ),
                         ),
@@ -161,7 +164,7 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
                     ),
                   ),
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Card(
                   elevation: 0,
                   color: Colors.white,
@@ -169,7 +172,7 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -221,7 +224,7 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
             ),
           ),
           if (_isLoading)
-            Expanded(
+            const Expanded(
               child: Center(child: CircularProgressIndicator()),
             )
           else
@@ -229,7 +232,7 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     ActivityChartImage(
                       activity: AppActivity(
                         appName: '',
@@ -243,7 +246,7 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
                         todayTotalDuration: totalDuration,
                       ),
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
@@ -270,7 +273,7 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
   }
 
   Future<void> _shareToTwitter(
-      Duration workDuration, Duration totalDuration) async {
+      BuildContext context, Duration workDuration, Duration totalDuration) async {
     final period = _startDate == _endDate
         ? '${_formatDate(_startDate)}の'
         : '${_formatDate(_startDate)} ~ ${_formatDate(_endDate)}の';
@@ -289,7 +292,7 @@ class _WorkDurationReportScreenState extends State<WorkDurationReportScreen> {
     final hasMore = sortedApps.length > 3;
     final breakdownText = hasMore ? '$appBreakdown\netc...' : appBreakdown;
 
-    final text = '''${period}作業時間📊:
+    final text = '''$period作業時間📊:
 ${_formatDuration(workDuration)}
 
 【内訳】
@@ -300,17 +303,16 @@ $breakdownText
     final encodedText = Uri.encodeComponent(text);
     final twitterUrl = 'https://twitter.com/intent/tweet?text=$encodedText';
 
-    if (await canLaunchUrl(Uri.parse(twitterUrl))) {
-      await launchUrl(Uri.parse(twitterUrl));
-    } else {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Twitterを開けませんでした'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+    final uri = Uri.parse(twitterUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Twitterを開けませんでした'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 }

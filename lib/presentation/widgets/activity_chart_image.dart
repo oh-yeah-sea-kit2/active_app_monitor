@@ -4,8 +4,7 @@ import '../../domain/entities/app_activity.dart';
 class ActivityChartImage extends StatelessWidget {
   final AppActivity activity;
 
-  const ActivityChartImage({Key? key, required this.activity})
-      : super(key: key);
+  const ActivityChartImage({super.key, required this.activity});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +19,7 @@ class ActivityChartImage extends StatelessWidget {
 
     return Container(
       width: 600,
-      padding: EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -36,7 +35,7 @@ class ActivityChartImage extends StatelessWidget {
               activity.todayWorkDuration!,
               Colors.blue.shade100,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
           ],
           if (sortedDomains.isNotEmpty) ...[
             _buildChartSection(
@@ -45,7 +44,7 @@ class ActivityChartImage extends StatelessWidget {
               activity.todayWorkDuration!,
               Colors.green.shade100,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
           ],
           if (sortedAllApps.isNotEmpty)
             _buildChartSection(
@@ -66,9 +65,9 @@ class ActivityChartImage extends StatelessWidget {
     Color backgroundColor,
   ) {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: backgroundColor.withOpacity(0.3),
+        color: backgroundColor.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -82,13 +81,13 @@ class ActivityChartImage extends StatelessWidget {
               color: Colors.grey.shade800,
             ),
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           ...items.map((item) {
             final percentage = totalDuration.inSeconds > 0
                 ? item.value.inSeconds / totalDuration.inSeconds * 100
                 : 0.0;
             return Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -97,7 +96,7 @@ class ActivityChartImage extends StatelessWidget {
                       Expanded(
                         child: Text(
                           item.key,
-                          style: TextStyle(fontSize: 14),
+                          style: const TextStyle(fontSize: 14),
                         ),
                       ),
                       Text(
@@ -109,7 +108,7 @@ class ActivityChartImage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   LinearProgressIndicator(
                     value: percentage / 100,
                     backgroundColor: Colors.grey.shade200,
@@ -118,7 +117,7 @@ class ActivityChartImage extends StatelessWidget {
                     ),
                     minHeight: 8,
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Align(
                     alignment: Alignment.centerRight,
                     child: Text(
@@ -132,7 +131,7 @@ class ActivityChartImage extends StatelessWidget {
                 ],
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );
